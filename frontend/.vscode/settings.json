@@ -1,0 +1,12 @@
+{
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "vscode.typescript-language-features", "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "html.format.contentUnformatted": "",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1500,
+    "editor.wordWrap": "on",
+    "editor.formatOnType": true
+}

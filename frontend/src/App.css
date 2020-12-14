@@ -1,0 +1,77 @@
+@font-face { font-family: Playball; src: url('fonts/Playball-Regular.ttf'); }
+@font-face { font-family: Lobster; src: url('fonts/Lobster-Regular.ttf'); }
+@font-face { font-family: Lato; src: url('fonts/Lato-Regular.ttf'); }
+@font-face { font-family: RobotoSlab; src: url('fonts/RobotoSlab-Regular.ttf'); }
+
+*{
+font-family: RobotoSlab;
+margin: 0;
+padding: 0;
+}
+
+.cursor-pointer{
+    cursor: pointer;
+}
+
+nav{
+min-height: 10vh !important;
+}
+
+footer{
+min-height: 10vh !important;
+}
+
+body{
+min-height: 80vh !important;
+margin-top: 10vh !important;
+margin-bottom: 10vh !important;
+}
+
+.content-height{
+    min-height: 80vh !important;
+}
+
+.box-shadow, .btn{
+box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.30);
+}
+
+.dami-bg{
+ background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
+}
+
+.bg-grey{
+    background-image: linear-gradient(-225deg, #E3FDF5 0%, #FFE6FA 100%);
+    /* background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%); */
+    /* background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%); */
+    
+}
+
+a:hover{
+text-decoration: none;
+}
+
+.font-xs{
+font-size: 10px;
+}
+
+
+.font-sm{
+font-size: 12px;
+}
+
+.font-md{
+font-size: 14px;
+}
+
+.font-lg{
+font-size: 18px;
+}
+
+.border-danger-c{
+border: 2px solid red;
+}
+
+.bg-light-grey{
+background-color: #c4bdbd;
+}
+

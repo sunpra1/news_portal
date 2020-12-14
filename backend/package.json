@@ -1,0 +1,33 @@
+{
+  "name": "rental",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "mongoDB": "c:/mongodb/bin/mongod.exe --dbpath=c:/mongodb/mongodb-data",
+    "start": "./node_modules/.bin/env-cmd -f ./config/dev.env nodemon src/index.js",
+     "test": "./node_modules/.bin/env-cmd -f ./config/dev.env jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.10.13",
+    "multer": "^1.4.2",
+    "validator": "^13.1.17"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.10",
+    "@shelf/jest-mongodb": "^1.2.2",
+    "babel-jest": "^26.6.3",
+    "env-cmd": "^10.1.0",
+    "jest-environment-node": "^26.2.0",
+    "nodemon": "^2.0.6",
+    "supertest": "^6.0.1"
+  }
+}
