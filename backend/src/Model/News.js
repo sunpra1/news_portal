@@ -2,7 +2,6 @@ import Mongoose from 'mongoose';
 import { commentSchema } from './Schema/Comment.js';
 import { newsReactSchema } from './Schema/NewsReact.js';
 
-
 const newsSchema = Mongoose.Schema({
     title: {
         type: String,
@@ -46,4 +45,5 @@ const newsSchema = Mongoose.Schema({
     timestamps: true
 });
 
+newsSchema.statics.fillable = ["title", "description", "category", "tags"];
 export default Mongoose.model("News", newsSchema);

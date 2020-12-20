@@ -20,18 +20,19 @@ import AdminRoute from './components/routes/AdminRoute';
 function App() {
   return (
     <UserProvider>
-          <Router>
-            <Navbar />
-            <Notification />
-            <Route exact path="/login" component={Login} />
-            <Route exact path="/register" component={Register} />
-            <Route exact path="/" component={AppCategories} />
-            {/* <AuthRoute exact path="/add_news" component={AddNews} /> */}
-            {/* <AuthRoute exact path="/user/profile" component={Profile} /> */}
-            {/* <AuthRoute exact path="/user/dashboard" component={Dashboard} /> */}
-            {/* <AdminRoute exact path="/app/categories" component={AppCategories} /> */}
-            <Footer />
-          </Router>
+      <Router>
+        <Navbar />
+        <Notification />
+        <Route exact path="/login" component={Login} />
+        <Route exact path="/register" component={Register} />
+        <Route exact path="/categories" component={AppCategories} />
+        <Route exact path="/" component={Login} />
+        {/* <AuthRoute exact path="/add_news" component={AddNews} /> */}
+        {/* <AuthRoute exact path="/user/profile" component={Profile} /> */}
+        {/* <AuthRoute exact path="/user/dashboard" component={Dashboard} /> */}
+        {/* <AdminRoute exact path="/app/categories" component={AppCategories} /> */}
+        <Footer />
+      </Router>
     </UserProvider>
   );
 }

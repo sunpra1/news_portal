@@ -30,22 +30,18 @@ export default class UserProvider extends Component {
         this.setState({ user: result.data });
       }).catch(e => {
         if (e.response && e.response.data.message) {
-          notify("danger", e.response.data.message);
           if (e.response.status && e.response.status === 401) {
             localStorage.removeItem("token");
             this.setState({ user: null });
           }
-        } else {
-          notify("danger", "Unable fetch user details");
         }
       });
     }
-
   };
 
   render() {
     return (
-      <UserContext.Provider value={{ setUser: this.setUser }}>
+      <UserContext.Provider value={{ user: this.state.user, setUser: this.setUser }}>
         {this.props.children}
       </UserContext.Provider>
     );

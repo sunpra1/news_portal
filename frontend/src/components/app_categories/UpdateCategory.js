@@ -51,8 +51,7 @@ class UpdateCategoryModel extends Component {
                 }
             })
                 .then(result => {
-                    // this.context.updateCategory(result.data);
-
+                    this.props.updateCategory(result.data, this.props.position);
                     this.closeModal();
                     notify("success", "Category updated successfully");
 
@@ -100,10 +99,10 @@ class UpdateCategoryModel extends Component {
                             </div>
                             <div className="card-body">
                                 {
-                                    (categoryDetails && categoryDetails.discussions.length > 0)
+                                    (categoryDetails && categoryDetails.news.length > 0)
                                         ?
                                         <p><span className="text-danger text-center">ERROR: </span><br />
-                                            <span className="text-info">Discussion Count: {categoryDetails.discussions.length}</span>
+                                            <span className="text-info">Discussion Count: {categoryDetails.news.length}</span>
                                             <br />
                                             This category has been already been refrenced to start discussion. So, update of the category is prohibited.
                                         </p>

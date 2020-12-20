@@ -14,4 +14,5 @@ const categorySchema = Mongoose.Schema({
     timestamps: true
 });
 
+categorySchema.statics.fillable = ["category"];
 export default Mongoose.model("Category", categorySchema);

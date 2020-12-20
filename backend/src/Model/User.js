@@ -23,14 +23,20 @@ const userSchema = Mongoose.Schema({
             return this.role == "OWNER";
         }
     },
-    email: {
-        type: String,
-        trim: true,
-        lowercase: true,
+    phone: {
+        type: Number,
         required: true,
         validate: {
-            validator: value => Validator.isEmail(value),
-            message: prop => `${prop.value} is not valid email address`
+            validator: value => Validator.trim(value.toString()).length == 10 && Validator.isNumeric(Validator.trim(value.toString())),
+            message: prop => {
+                let message;
+                if (Validator.trim(data.phone.toString()).length != 10) {
+                    message = "Phone number must be 10 characters long";
+                } else if (!Validator.isNumeric(Validator.trim(data.phone.toString()))) {
+                    message = "Phone number must be numeric";
+                }
+                return message;
+            }
         }
     },
     password: {
@@ -67,6 +73,8 @@ const userSchema = Mongoose.Schema({
     timestamps: true
 });
 
+userSchema.statics.fillable = ["fullName", "gender", "dob", "address", "phone", "password", "role"];
+
 userSchema.methods.generateAuthToken = async function () {
     const user = this;
     const token = Jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
@@ -76,8 +84,8 @@ userSchema.methods.generateAuthToken = async function () {
     return token;
 };
 
-userSchema.statics.isUnique = async (email) => {
-    const user = await User.findOne({ email });
+userSchema.statics.isUnique = async (phone) => {
+    const user = await User.findOne({ phone });
     return user ? false : true;
 };
 

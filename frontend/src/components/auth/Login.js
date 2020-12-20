@@ -3,7 +3,7 @@ import Axios from 'axios';
 import { notify } from '../layout/Notification';
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLock, faAt } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faAt, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { Redirect } from 'react-router-dom';
 import { BaseURL } from '../utils/constant';
 
@@ -12,25 +12,25 @@ export default class Login extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            email: "",
+            phone: "",
             password: "",
             errors: {}
-        }
+        };
     }
 
     onChange = e => {
         const name = e.target.name;
         const value = e.target.value;
         this.setState({ [name]: value });
-    }
+    };
 
     onSubmit = e => {
         e.preventDefault();
         this.setState({ errors: {} });
         const data = {
-            email: this.state.email,
+            phone: this.state.phone,
             password: this.state.password
-        }
+        };
 
         if (this.validate(data)) {
             Axios({
@@ -45,33 +45,37 @@ export default class Login extends Component {
                 }
             }).catch(e => {
                 if (e.response && e.response.data.message) {
-                    notify("warning", e.response.data.message);
+                    if (Object.keys(e.response.data.message).length > 0) {
+                        this.setState({ errors: e.response.data.message });
+                    } else {
+                        notify("warning", e.response.data.message);
+                    }
                 } else {
                     notify("danger", "Unable to verify user credentials");
                 }
             });
         }
-    }
+    };
 
     validate = (input) => {
         let errors = {};
 
-        if (!input.email)
-            errors.email = "Email is required";
+        if (!input.phone)
+            errors.phone = "Phone is required";
 
         if (!input.password)
             errors.password = "Password is required";
 
         this.setState({ errors });
         return Object.keys(errors).length === 0;
-    }
+    };
 
     render() {
-        const { errors, email, password } = this.state;
+        const { errors, phone, password } = this.state;
         const { user } = this.context;
 
-        if (user) {
-            return <Redirect to="/" />
+        if (user && user.role == "ADMIN") {
+            return <Redirect to="/categories" />;
         }
 
         return (
@@ -85,14 +89,14 @@ export default class Login extends Component {
                         <div className="card-body">
                             <form onSubmit={this.onSubmit} method="post">
                                 <div className="form-group">
-                                    <label htmlFor="email" className="text-light">EMAIL</label>
+                                    <label htmlFor="phone" className="text-light">PHONE</label>
                                     <div className="input-group">
                                         <div className="input-group-prepend">
-                                            <span className="input-group-text  rounded-0" id="inputGroupPrepend"><FontAwesomeIcon icon={faAt} /> </span>
+                                            <span className="input-group-text  rounded-0" id="inputGroupPrepend"><FontAwesomeIcon icon={faPhone} /> </span>
                                         </div>
-                                        <input type="email" name="email" value={email} onChange={this.onChange} placeholder="YOUR EMAIL" className={"form-control rounded-0 " + (errors.email ? "is-invalid" : "")} autoComplete="off" />
+                                        <input type="number" name="phone" value={phone} onChange={this.onChange} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} autoComplete="off" />
                                         <div className="invalid-feedback">
-                                            <span>{errors.email}</span>
+                                            <span>{errors.phone}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -118,6 +122,6 @@ export default class Login extends Component {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }

@@ -2,16 +2,18 @@ import Express from 'express';
 import User from '../Model/User.js';
 import Bcrypt from 'bcryptjs';
 import * as Validate from '../Utils/Validate.js';
-import { Auth } from '../Middleware/Auth.js';
+import { Auth } from '../Middleware/Middleware.js';
 import { userImageUpload } from '../Utils/fileUpload.js';
 import FS from 'fs';
 import Path from 'path';
+import { TakeUserSchemaFillable } from '../Middleware/TakeFillables.js';
 
 const userRouter = Express.Router();
 userRouter.route("/register")
-    .post(async (req, res, next) => {
+    .post(TakeUserSchemaFillable, async (req, res, next) => {
         try {
             const validationErrors = await Validate.userData(req.body);
+            
             if (Object.keys(validationErrors).length == 0) {
                 let user = new User(req.body);
                 user.password = Bcrypt.hashSync(user.password, 8);
@@ -37,7 +39,7 @@ userRouter.route("/validate-unique-user")
         try {
             const validationErrors = Validate.uniqueUserData(req.body);
             if (Object.keys(validationErrors).length == 0) {
-                const user = await User.findOne({ email: req.body.email });
+                const user = await User.findOne({ phone: req.body.phone });
                 const isUnique = user ? false : true;
                 res.send({ isUnique, user });
             } else {
@@ -51,10 +53,10 @@ userRouter.route("/validate-unique-user")
 userRouter.route("/login")
     .post(async (req, res, next) => {
         try {
-            const validationErrors = Validate.validateLogin(req.body);
+            const validationErrors = Validate.loginData(req.body);
             if (Object.keys(validationErrors).length == 0) {
 
-                const user = await User.findOne({ email: req.body.email });
+                const user = await User.findOne({ phone: req.body.phone });
                 if (user) {
                     if (Bcrypt.compareSync(req.body.password, user.password)) {
                         const token = await user.generateAuthToken();
@@ -85,7 +87,7 @@ userRouter.route("/profile")
             next(e);
         }
     })
-    .put(Auth, async (req, res, next) => {
+    .put(Auth, TakeUserSchemaFillable, async (req, res, next) => {
         try {
             userImageUpload.single("image")(req, res, async error => {
                 if (error) {

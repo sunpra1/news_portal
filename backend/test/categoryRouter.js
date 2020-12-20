@@ -1,5 +1,6 @@
-//TODO:    Deletion and updation of category with one or more news
-//         Do after news router is completed
+//TODO:     Deletion and updation of category with one or more news
+//          Do after news router is completed
+//          Test creation of not allowed to other user except with role of ADMIN
 
 import './mongooseSetup';
 import Request from './expressSetup.js';
@@ -11,11 +12,10 @@ describe("Testing routes on category router", () => {
     beforeAll(async done => {
         const newUser = {
             fullName: "Dinesh Poudel",
-            email: "dinesh.poudel220@gmail.com",
+            phone: 9847780665,
             password: "dinesh12",
-            role: "admin"
+            role: "ADMIN"
         };
-
         const userRegisterRes = await Request.post("/users/register").send(newUser);
         adminToken = userRegisterRes.body.token;
 
@@ -23,7 +23,6 @@ describe("Testing routes on category router", () => {
         const newCategoryRes = await Request.post("/categories")
             .set("authorization", adminToken)
             .send(newCategory);
-        console.log(newCategoryRes.body);
         categoryId = newCategoryRes.body._id;
 
         done();
@@ -44,7 +43,6 @@ describe("Testing routes on category router", () => {
             .set("authorization", adminToken)
             .send(newCategory);
 
-        console.log(newCategoryRes.body);
         expect(newCategoryRes.statusCode).toBe(201);
         expect(newCategoryRes.body.category).toBe(newCategory.category);
     });

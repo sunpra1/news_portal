@@ -1,13 +1,13 @@
 import Express from 'express';
 import Category from '../Model/Category.js';
-import { Auth, AdminUser } from '../Middleware/Auth.js';
-import { validateCategory } from '../Utils/Validate.js';
+import { Auth, AdminUser } from '../Middleware/Middleware.js';
+import { validateCategory, validateUpdateCategory } from '../Utils/Validate.js';
 
 const categoryRoute = new Express.Router();
 
 categoryRoute.route('/')
     .get(async (req, res, next) => {
-        const categories = await Category.find({}).catch(e => next(e));           
+        const categories = await Category.find({});           
         res.send(categories);           
     })
     .post(Auth, AdminUser, async (req, res, next) => {
@@ -22,7 +22,7 @@ categoryRoute.route('/')
 
 categoryRoute.route("/:categoryID")
     .put(AdminUser, async (req, res, next) => {
-        const validationErrors = validateCategory(req.body);
+        const validationErrors = validateUpdateCategory({ ...req.body, ...req.params});
         if (Object.keys(validationErrors).length == 0) {
             let category = await Category.findById(req.params.categoryID).catch(e => next(e));
             if (category) {
@@ -33,7 +33,7 @@ categoryRoute.route("/:categoryID")
                     category = await category.save();
                     res.send(category);
                 } else {
-                    const error = new Error(category.news.length + " news belongs to this category, updation of the category is prohibited.");
+                    const error = new Error(category.news.length + " news belongs to this category, updation of the category is prohibited");
                     error.statusCode = 400;
                     next(error);
                 }

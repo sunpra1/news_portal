@@ -8,14 +8,11 @@ import UpdateCategory from './UpdateCategory';
 import { BaseURL } from '../utils/constant';
 
 class CategoryList extends Component {
-    constructor(props) { 
+    constructor(props) {
         super(props);
-        this.state = {
-            categories : []
-        }
     }
 
-    onDeleteClick = categoryID => {
+    onDeleteClick = (categoryID, position) => {
         if (window.confirm("Please confirm to delete this category")) {
             Axios({
                 method: "delete",
@@ -25,7 +22,7 @@ class CategoryList extends Component {
                 }
             })
                 .then(result => {
-                    this.context.deleteCategory(result.data._id);
+                    this.props.deleteCategory(position);
                     notify("success", "Category deleted successfully");
                 })
                 .catch(e => {
@@ -36,13 +33,13 @@ class CategoryList extends Component {
                     }
                 });
         }
-    }
+    };
 
     render() {
-        const { categories } = this.state;
+        const { categories } = this.props;
 
         if (!categories) {
-            return <Loading />
+            return <Loading />;
         }
 
         else if (categories.length === 0) {
@@ -65,7 +62,7 @@ class CategoryList extends Component {
                         </table>
                     </div>
                 </div>
-            )
+            );
         }
 
         else {
@@ -75,28 +72,30 @@ class CategoryList extends Component {
                         <thead>
                             <tr className="bg-info text-light">
                                 <th>CATEGORIES</th>
+                                <th>NEWS COUNT</th>
                                 <th>ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>
                             {
-                                categories.map(cat => {
+                                categories.map((cat, position) => {
                                     return (
                                         <tr key={cat._id}>
                                             <td>{cat.category}</td>
+                                            <td>{cat.news.length}</td>
                                             <td>
-                                                <UpdateCategory category={cat} />
+                                                <UpdateCategory updateCategory={this.props.updateCategory} position={position} category={cat} />
 
-                                                <button onClick={() => this.onDeleteClick(cat._id)} className="btn btn-sm rounded-0 btn-danger mx-1"><FontAwesomeIcon icon={faTrash} /></button>
+                                                <button onClick={() => this.onDeleteClick(cat._id, position)} className="btn btn-sm rounded-0 btn-danger mx-1"><FontAwesomeIcon icon={faTrash} /></button>
                                             </td>
                                         </tr>
-                                    )
+                                    );
                                 })
                             }
                         </tbody>
                     </table>
                 </div>
-            )
+            );
         }
     }
 }

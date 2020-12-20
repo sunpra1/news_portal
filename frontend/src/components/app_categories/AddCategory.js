@@ -15,7 +15,7 @@ class AddCategoryModel extends Component {
             category: "",
             errors: {},
             modalIsOpen: false
-        }
+        };
         this.customStyles = {
             content: {
                 top: '50%',
@@ -30,18 +30,18 @@ class AddCategoryModel extends Component {
 
     openModal = () => {
         this.setState({ modalIsOpen: true });
-    }
+    };
 
     closeModal = () => {
         this.setState({ modalIsOpen: false });
-    }
+    };
 
     onChange = e => {
         const name = e.target.name;
         const value = e.target.value;
 
-        this.setState({ [name]: value })
-    }
+        this.setState({ [name]: value });
+    };
 
 
     onSubmit = e => {
@@ -56,19 +56,23 @@ class AddCategoryModel extends Component {
                 }
             })
                 .then(result => {
-                    this.context.addCategory(result.data);
-                    notify("success", "Discussion added successfully");
+                    this.props.addCategory(result.data);
+                    notify("success", "Category added successfully");
                     this.setState({ category: "", modalIsOpen: false });
                 })
                 .catch(e => {
                     if (e.response && e.response.data.message) {
-                        notify("danger", e.response.data.message);
+                        if (Object.keys(e.response.data.message).length > 0) {
+                            this.setState({ errors: e.response.data.message });
+                        } else {
+                            notify("danger", e.response.data.message);
+                        }
                     } else {
                         notify("danger", "Unable to delete your comment");
                     }
                 });
         }
-    }
+    };
 
     validate = () => {
         const { category } = this.state;
@@ -82,7 +86,7 @@ class AddCategoryModel extends Component {
             }
         }
         return true;
-    }
+    };
 
     render() {
         const { errors, category } = this.state;
@@ -124,7 +128,7 @@ class AddCategoryModel extends Component {
                     </div>
                 </Modal>
             </React.Fragment>
-        )
+        );
     }
 }
 
