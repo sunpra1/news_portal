@@ -1,6 +1,5 @@
 import React, { Component, createContext } from 'react';
 import Axios from 'axios';
-import { notify } from '../layout/Notification';
 import { BaseURL } from '../utils/constant';
 
 export const UserContext = createContext();

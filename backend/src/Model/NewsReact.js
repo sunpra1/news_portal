@@ -3,6 +3,7 @@ import Mongoose from 'mongoose';
 const newsReactSchema = Mongoose.Schema({
     type: {
         type: String,
+        uppercase: true,
         enum: ["HAPPY", "SAD", "SURPRISED", "HYSTERIC", "ANGRY"],
         required: true
     },
@@ -10,14 +11,13 @@ const newsReactSchema = Mongoose.Schema({
         type: Mongoose.Schema.Types.ObjectId,
         required: true,
         ref: "User"
-    },
-    news: {
-        type: Mongoose.Schema.Types.ObjectId,
-        ref: "News",
-        required: true
     }
 }, {
     timestamps: true
 });
 
+newsReactSchema.statics.fillable = ["type"];
+const NewsReact = Mongoose.model("NewsReact", newsReactSchema);
+
 export { newsReactSchema };
+export default NewsReact;

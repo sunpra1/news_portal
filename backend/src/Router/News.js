@@ -1,11 +1,17 @@
 import Express from 'express';
-import { PostNews, UpdateAndDeleteNews } from '../Middleware/Middleware.js';
-import { TakeNewsSchemaFillable } from '../Middleware/TakeFillables.js';
+import { AdminUser, Auth, DeleteComment, IfAuth, PostNews, UpdateAndDeleteNews, UpdateComment } from '../Middleware/Middleware.js';
+import { TakeCommentReactSchemaFillable, TakeCommentSchemaFillable, TakeNewsReactSchemaFillable, TakeNewsSchemaFillable } from '../Middleware/TakeFillables.js';
 import News from '../Model/News.js';
-import * as Validate from '../Utils/Validate.js';
+import { addCommentData, addNewsData, getAllNewsParams, updateCategoryData, updateNewsData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData } from '../Utils/Validate.js';
 import { newsImageUpload } from '../Utils/fileUpload.js';
 import Category from '../Model/Category.js';
 import Validator from 'validator';
+import FS from 'fs';
+import Path from 'path';
+import User from '../Model/User.js';
+import Comment from '../Model/Comment.js';
+import CommentReact from '../Model/CommentReact.js';
+import NewsReact from '../Model/NewsReact.js';
 
 const newsRouter = new Express.Router();
 
@@ -23,18 +29,17 @@ newsRouter.route("/")
                     }
                     next(error);
                 } else {
-                    const validationErrors = Validate.newsData(req.body);
+                    const validationErrors = addNewsData(req.body);
                     if (Object.keys(validationErrors).length == 0) {
-
                         const category = await Category.findById(req.body.category);
                         if (category) {
                             const user = req.user;
                             const news = new News(req.body);
                             news.author = user.id;
 
-                            if (req.files && req.files.length > 0)
+                            if (req.files && req.files.length > 0) {
                                 news.images = req.files.map(file => file.path);
-
+                            }
                             user.news.push(news.id);
                             await user.save();
 
@@ -51,7 +56,6 @@ newsRouter.route("/")
                             error.statusCode = 400;
                             next(error);
                         }
-
                     } else {
                         res.status(400).send({ message: validationErrors });
                     }
@@ -70,9 +74,9 @@ newsRouter.route("/")
     });
 
 newsRouter.route("/:page/:limit/:category/:sortOption/:search")
-    .get(async (req, res, next) => {
+    .get(IfAuth, async (req, res, next) => {
         try {
-            const validationErrors = Validate.getAllNewsParams(req.params);
+            const validationErrors = getAllNewsParams(req.params);
             if (Object.keys(validationErrors).length == 0) {
                 const { category, sortOption, search } = req.params;
                 const limit = req.params.limit ? Number(req.params.limit) : 100;
@@ -173,15 +177,10 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                     data = await News.find({}).sort({ createdAt: -1 }).limit(limit).skip(skip);
                 }
                 data = await Promise.all(data.map(async item => {
-                    await item.populate("author").populate("category").execPopulate();
-                    await item.populate({
-                        path: "comments",
-                        match: {
-                            approved: true
-                        }
-                    }).execPopulate();
-                    await item.populate("reacts").execPopulate();
-                    await item.populate("comments.user").populate("comments.reacts").execPopulate();
+                    if (!(req.user && req.user.role == "ADMIN")) {
+                        item.comments = item.comments.filter(comment => comment.approved);
+                    }
+                    await item.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
                     return item;
                 }));
                 res.send(data);
@@ -195,12 +194,17 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
     });
 
 newsRouter.route("/:newsID")
-    .get(async (req, res, next) => {
+    .get(IfAuth, async (req, res, next) => {
         try {
             if (Validator.isMongoId(req.params.newsID)) {
                 const news = await News.findById(req.params.newsID);
-                if (news)
+                if (news) {
+                    if (!(req.user && req.user.role == "ADMIN")) {
+                        news.comments = news.comments.filter(comment => comment.approved);
+                    }
+                    await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
                     res.send(news);
+                }
                 else {
                     const error = new Error("News with id: " + req.params.newsID + " not found");
                     error.statusCode = 400;
@@ -228,53 +232,39 @@ newsRouter.route("/:newsID")
                     }
                     next(error);
                 } else {
-                    if (Validator.isMongoId(req.params.newsID)) {
-                        const validationErrors = Validate.newsUpdateData(req.body);
-                        if (Object.keys(validationErrors).length == 0) {
-                            const news = req.news;
-                            if (req.body.category && req.body.category != news.category.id.toString()) {
-                                const oldCategory = await Category.findById(news.category);
-                                oldCategory.news = oldCategory.news.filter(newsID => newsID.toString() != news.id.toString());
-                                await oldCategory.save();
+                    const validationErrors = updateNewsData(req.body);
+                    if (Object.keys(validationErrors).length == 0) {
+                        const news = req.news;
+                        if (req.body.category && req.body.category != news.category.id.toString()) {
+                            const oldCategory = await Category.findById(news.category);
+                            oldCategory.news = oldCategory.news.filter(newsID => newsID.toString() != news.id.toString());
+                            await oldCategory.save();
 
-                                const updatedCategory = await Category.findById(req.body.category);
-                                if (!updatedCategory.news.some(newsID => newsID.toString() == news.id.toString())) {
-                                    updatedCategory.news.push(news.id);
-                                    await updatedCategory.save();
-                                }
-                                news.category = updatedCategory.id;
+                            const updatedCategory = await Category.findById(req.body.category);
+                            if (!updatedCategory.news.some(newsID => newsID.toString() == news.id.toString())) {
+                                updatedCategory.news.push(news.id);
+                                await updatedCategory.save();
                             }
-
-                            if (req.files && req.files.length > 0) {
-                                if (news.images && news.images.length > 0) {
-                                    news.images.forEach(image => {
-                                        if (FS.existsSync(Path.join(Path.resolve(), image))) {
-                                            FS.unlinkSync(Path.join(Path.resolve(), image));
-                                        }
-                                    });
-                                }
-                                news.images = req.files.map(file => file.path);
-                            }
-
-                            Object.keys(req.body).forEach(key => news[key] = req.body[key]);
-                            await news.save();
-                            await news.populate("author").populate("category").execPopulate();
-                            await news.populate({
-                                path: "comments",
-                                match: {
-                                    approved: true
-                                }
-                            }).execPopulate();
-                            await news.populate("reacts").execPopulate();
-                            await news.populate("comments.user").populate("comments.reacts").execPopulate();
-                            res.send(news);
-                        } else {
-                            res.status(400).send({ message: validationErrors });
+                            news.category = updatedCategory.id;
                         }
+
+                        if (req.files && req.files.length > 0) {
+                            if (news.images && news.images.length > 0) {
+                                news.images.forEach(image => {
+                                    if (FS.existsSync(Path.join(Path.resolve(), image))) {
+                                        FS.unlinkSync(Path.join(Path.resolve(), image));
+                                    }
+                                });
+                            }
+                            news.images = req.files.map(file => file.path);
+                        }
+
+                        Object.keys(req.body).forEach(key => news[key] = req.body[key]);
+                        await news.save();
+                        await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
+                        res.send(news);
                     } else {
-                        const error = new Error("Parameter news id, " + req.params.newsID + " is invalid");
-                        error.statusCode = 400;
-                        next(error);
+                        res.status(400).send({ message: validationErrors });
                     }
                 }
             });
@@ -292,15 +282,266 @@ newsRouter.route("/:newsID")
     .delete(UpdateAndDeleteNews, async (req, res, next) => {
         try {
             const news = req.news;
+            const newsAuthor = await User.findById(news.author);
+            newsAuthor.news = newsAuthor.news.filter(newsId => newsId.toString() != news.id.toString());
+            const newsCategory = await Category.findById(news.category);
+            newsCategory.news = newsCategory.news.filter(newsId => newsId.toString() != news.id.toString());
             if (news.images && news.images.length > 0) {
                 news.images.forEach(image => {
-                    if (file && FS.existsSync(Path.join(Path.resolve(), image))) {
+                    if (image && FS.existsSync(Path.join(Path.resolve(), image))) {
                         FS.unlinkSync(Path.join(Path.resolve(), image));
                     }
                 });
             }
             await news.remove();
+            await newsAuthor.save();
+            await newsCategory.save();
             res.send(news);
+        } catch (error) {
+            next(error);
+        }
+    });
+
+newsRouter.route("/:newsID/comments")
+    .post(Auth, TakeCommentSchemaFillable, async (req, res, next) => {
+        try {
+            const validationErrors = addCommentData({ ...req.body, ...req.params });
+            if (Object.keys(validationErrors).length == 0) {
+                const news = await News.findById(req.params.newsID);
+                if (news) {
+                    const comment = new Comment(req.body);
+                    comment.news = news.id;
+                    comment.user = req.user.id;
+                    news.comments.push(comment);
+                    await news.save();
+                    res.status(201).send(comment);
+                } else {
+                    const error = new Error("News with id: " + req.params.newsID + " not found");
+                    error.statusCode = 400;
+                    next(error);
+                }
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
+    });
+
+newsRouter.route("/:newsID/comments/:commentID")
+    .put(UpdateComment, async (req, res, next) => {
+        try {
+            const validationErrors = updateCategoryData({ ...req.data, ...req.params });
+            if (Object.keys(validationErrors).length == 0) {
+                const news = req.news;
+                const comment = req.comment;
+                Object.keys(req.body).forEach(key => {
+                    comment[key] = req.body[key];
+                });
+                await news.save();
+                res.send(comment);
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
+    })
+    .delete(DeleteComment, async (req, res, next) => {
+        try {
+            const validationErrors = deleteCommentData(req.params);
+            if (Object.keys(validationErrors).length == 0) {
+                const news = req.news;
+                const comment = req.comment;
+                comment.remove();
+                await news.save();
+                res.send(comment);
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
+    });
+
+newsRouter.route("/:newsID/comments/:commentID/toggleApprove")
+    .put(AdminUser, async (req, res, next) => {
+        try {
+            const validationErrors = toggleCommentApproveData(req.params);
+            if (Object.keys(validationErrors).length == 0) {
+                const news = await News.findById(req.params.newsID);
+                const comment = news.comments.id(req.params.commentID);
+                const commentIndex = news.comments.findIndex(com => com.id.toString() == comment.id.toString());
+                comment.approved = !comment.approved;
+                await news.populate(`comments.${commentIndex}.user`).populate(`comments.${commentIndex}.reacts`).execPopulate();
+                await news.save();
+                res.send(comment);
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
+    });
+
+newsRouter.route("/:newsID/increaseView")
+    .put(async (req, res, next) => {
+        if (Validator.isMongoId(req.params.newsID)) {
+            const news = await News.findById(req.params.newsID);
+            if (news) {
+                news.views = news.views + 1;
+                await news.save();
+                res.send(news);
+            } else {
+                const error = new Error("News with id: " + req.params.newsID + " not found");
+                error.statusCode = 400;
+                next(error);
+            }
+        } else {
+            const error = new Error("Parameter news id, " + req.params.newsID + " is invalid");
+            error.statusCode = 400;
+            next(error);
+        }
+    });
+
+newsRouter.route("/:newsID/reacts")
+    .post(Auth, TakeNewsReactSchemaFillable, async (req, res, next) => {
+        try {
+            const validationErrors = postNewsReactData({ ...req.body, ...req.params });
+            if (Object.keys(validationErrors).length == 0) {
+                const news = await News.findById(req.params.newsID);
+                if (news) {
+                    const index = news.reacts.findIndex(react => react.user.toString() == req.user.id.toString());
+                    let react;
+                    if (index >= 0) {
+                        react = news.reacts[index];
+                        react.type = req.body.type;
+                    } else {
+                        react = new NewsReact(req.body);
+                        react.user = req.user.id;
+                        news.reacts.push(react);
+                    }
+                    await news.save();
+                    res.send(react);
+                } else {
+                    const error = new Error("News with id: " + req.params.newsID + " not found");
+                    error.statusCode = 400;
+                    next(error);
+                }
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
+    });
+
+newsRouter.route("/:newsID/comments/:commentID/reacts")
+    .post(Auth, TakeCommentReactSchemaFillable, async (req, res, next) => {
+        try {
+            const validationErrors = postCommentReactData({ ...req.body, ...req.params });
+            if (Object.keys(validationErrors).length == 0) {
+                const news = await News.findById(req.params.newsID);
+                if (news) {
+                    const comment = news.comments.id(req.params.commentID);
+                    if (comment) {
+                        const index = comment.reacts.findIndex(react => react.user.toString() == req.user.id.toString());
+                        let react;
+                        if (index >= 0) {
+                            react = comment.reacts[index];
+                            react.type = req.body.type;
+                        } else {
+                            react = new CommentReact(req.body);
+                            react.user = req.user.id;
+                            comment.reacts.push(react);
+                        }
+                        await news.save();
+                        res.send(react);
+                    } else {
+                        const error = new Error("Comment with id: " + req.params.commentID + " not found");
+                        error.statusCode = 400;
+                        next(error);
+                    }
+                } else {
+                    const error = new Error("News with id: " + req.params.newsID + " not found");
+                    error.statusCode = 400;
+                    next(error);
+                }
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
+    });
+
+newsRouter.route("/:period/:isCategoryWise/:limit/:threshold")
+    .get(IfAuth, async (req, res, next) => {
+        try {
+            const validationErrors = getPopularNewsData(req.params);
+            if (Object.keys(validationErrors).length == 0) {
+                const { isCategoryWise, limit, threshold } = req.params;
+                const period = req.params.period.toUpperCase();
+
+                const todayDate = new Date();
+                const lessThen = period == "PREVIOUS_MONTH" ? todayDate.setMonth(todayDate.getMonth() - 1) : (period == "PREVIOUS_WEEK" ? todayDate.setDate(todayDate.getDate() - 7) : todayDate.setDate(todayDate.getDate() - 1));
+
+                const greaterThen = period == "PREVIOUS_MONTH" ? todayDate.setMonth(todayDate.getMonth() - 2) : (period == "PREVIOUS_WEEK" ? todayDate.setDate(todayDate.getDate() - 14) : (period == "THIS_MONTH" ? todayDate.setMonth(todayDate.getMonth() - 1) : todayDate.setDate(todayDate.getDate() - 7)));
+
+                if (isCategoryWise == "true" && isCategoryWise != "false") {
+                    let categories = await Category.find().populate({
+                        path: "news",
+                        match: {
+                            createdAt: {
+                                $gte: greaterThen,
+                                $lt: lessThen
+                            },
+                            views: {
+                                $gte: Number(threshold)
+                            }
+                        },
+                        options: {
+                            sort: {
+                                createdAt: -1
+                            },
+                            limit: 0,
+                            skip: 0
+                        }
+                    });
+
+                    categories = await Promise.all(categories.map(async category => {
+                        if (!(req.user && req.user.role == "ADMIN")) {
+                            category.news = await Promise.all(category.news.map(singleNews => {
+                                singleNews.comments = singleNews.comments.filter(comment => comment.approved);
+                                return singleNews;
+                            }));
+                        }
+
+                        return await category.populate("news.author").populate("news.category").populate("news.comments.user").populate("news.comments.reacts").execPopulate();
+                    }));
+                    res.send(categories);
+                } else {
+                    let news = await News.find({
+                        createdAt: {
+                            $gte: greaterThen,
+                            $lt: lessThen
+                        },
+                        views: {
+                            $gte: Number(threshold)
+                        }
+                    }).limit(Number(limit)).sort({ createdAt: -1 });
+
+                    news = await Promise.all(news.map(async singleNews => {
+                        if (!(req.user && req.user.role == "ADMIN")) {
+                            singleNews.comments = singleNews.comments.filter(comment => comment.approved);
+                        }
+                        return await singleNews.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
+                    }));
+                    res.send(news);
+                }
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
         } catch (error) {
             next(error);
         }

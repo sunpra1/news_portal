@@ -9,26 +9,16 @@ margin: 0;
 padding: 0;
 }
 
+.content-height{
+    min-height: 80vh !important;
+}
+
 .cursor-pointer{
     cursor: pointer;
 }
 
-nav{
-min-height: 10vh !important;
-}
-
-footer{
-min-height: 10vh !important;
-}
-
-body{
-min-height: 80vh !important;
-margin-top: 10vh !important;
-margin-bottom: 10vh !important;
-}
-
-.content-height{
-    min-height: 80vh !important;
+.list-group-item{
+    background: rgba(0, 0, 0, 0.0);
 }
 
 .box-shadow, .btn{

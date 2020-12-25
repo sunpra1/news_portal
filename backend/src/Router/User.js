@@ -12,8 +12,7 @@ const userRouter = Express.Router();
 userRouter.route("/register")
     .post(TakeUserSchemaFillable, async (req, res, next) => {
         try {
-            const validationErrors = await Validate.userData(req.body);
-            
+            const validationErrors = await Validate.userData(req.body);            
             if (Object.keys(validationErrors).length == 0) {
                 let user = new User(req.body);
                 user.password = Bcrypt.hashSync(user.password, 8);

@@ -1,8 +1,8 @@
-import validator from 'validator';
 import Validator from 'validator';
+import Category from '../Model/Category.js';
 import User from '../Model/User.js';
 
-const userData = async data => {
+const addUserData = async data => {
     let error = {};
 
     if (data.fullName) {
@@ -40,7 +40,7 @@ const userData = async data => {
     return error;
 };
 
-const userUpdateData = async data => {
+const updateUserData = async data => {
     let error = {};
 
     if (data.fullName) {
@@ -108,14 +108,17 @@ const loginData = data => {
     } else {
         error.password = "Password id is required field";
     }
+
     return error;
 };
 
-const validateCategory = (data) => {
+const addCategoryData = async data => {
     let error = {};
     if (data.category) {
         if (Validator.trim(data.category).length == 0) {
             error.category = "Category is left empty";
+        } else if (!await Category.isUnique(data.category)) {
+            error.category = "Category already exists";
         }
     } else {
         error.category = "Category is required";
@@ -124,15 +127,17 @@ const validateCategory = (data) => {
     return error;
 };
 
-const validateUpdateCategory = (data) => {
+const updateCategoryData = async (data) => {
     let error = {};
     if (!Validator.isMongoId(data.categoryID)) {
-        error.categoryID = "Provide valid id for param categoryID";
+        error.categoryID = "Provide valid id for route parameter categoryID";
     }
 
     if (data.category) {
         if (Validator.trim(data.category).length == 0) {
             error.category = "Category is left empty";
+        } else if (!await Category.isUnique(data.category)) {
+            error.category = "Category already exists";
         }
     } else {
         error.category = "Category is required";
@@ -141,7 +146,7 @@ const validateUpdateCategory = (data) => {
     return error;
 };
 
-const newsData = data => {
+const addNewsData = data => {
     let error = {};
 
     if (data.title) {
@@ -177,28 +182,28 @@ const getAllNewsParams = data => {
     let error = {};
     if (data.page) {
         if (!Validator.isNumeric(data.page)) {
-            error.page = "Parameter page must be numeric value";
+            error.page = "Route Parameter page must be numeric value";
         } else if (Number(data.page) <= 0) {
-            error.limit = "Parameter page must be greater then 0";
+            error.limit = "Route Parameter page must be greater then 0";
         }
     }
 
     if (data.limit) {
         if (!Validator.isNumeric(data.limit)) {
-            error.limit = "Parameter limit must be numeric value";
+            error.limit = "Route Parameter limit must be numeric value";
         } else if (Number(data.limit) <= 0) {
-            error.limit = "Parameter limit must be greater then 0";
+            error.limit = "Route Parameter limit must be greater then 0";
         }
     }
 
     if (data.category != "null" && !Validator.isMongoId(data.category)) {
-        error.category = "Parameter category id, " + data.category + " is invalid";
+        error.category = "Route Parameter category id is invalid";
     }
 
     return error;
 };
 
-const newsUpdateData = data => {
+const updateNewsData = data => {
     let error = {};
 
     if (data.title) {
@@ -224,4 +229,134 @@ const newsUpdateData = data => {
     return error;
 };
 
-export { userData, uniqueUserData, loginData, userUpdateData, validateCategory, validateUpdateCategory, newsData, getAllNewsParams, newsUpdateData };
+const addCommentData = data => {
+    let error = {};
+
+    if (!Validator.isMongoId(data.newsID)) {
+        error.categoryID = "Provide valid id for route parameter newsID";
+    }
+
+    if (data.comment) {
+        if (Validator.trim(data.comment).length == 0) {
+            error.comment = "Comment is left empty";
+        }
+    } else {
+        error.comment = "Comment is required field";
+    }
+
+    return error;
+};
+
+const updateCommentData = data => {
+    let error = {};
+
+    if (!Validator.isMongoId(data.newsID)) {
+        error.categoryID = "Provide valid id for route parameter newsID";
+    }
+
+    if (!Validator.isMongoId(data.commentID)) {
+        error.categoryID = "Provide valid id for route parameter commentID";
+    }
+
+    if (data.comment) {
+        if (Validator.trim(data.comment).length == 0) {
+            error.comment = "Comment is left empty";
+        }
+    }
+
+    return error;
+};
+
+const deleteCommentData = data => {
+    let error = {};
+
+    if (!Validator.isMongoId(data.newsID)) {
+        error.categoryID = "Provide valid id for route parameter newsID";
+    }
+
+    if (!Validator.isMongoId(data.commentID)) {
+        error.categoryID = "Provide valid id for route parameter commentID";
+    }
+    return error;
+};
+
+const toggleCommentApproveData = data => {
+    let error = {};
+
+    if (!Validator.isMongoId(data.newsID)) {
+        error.categoryID = "Provide valid id for route parameter newsID";
+    }
+
+    if (!Validator.isMongoId(data.commentID)) {
+        error.categoryID = "Provide valid id for route parameter commentID";
+    }
+
+    return error;
+};
+
+
+const postCommentReactData = data => {
+    let error = {};
+
+    if (!Validator.isMongoId(data.newsID)) {
+        error.categoryID = "Provide valid id for route parameter newsID";
+    }
+
+    if (!Validator.isMongoId(data.commentID)) {
+        error.categoryID = "Provide valid id for route parameter commentID";
+    }
+
+    if (data.type) {
+        if (Validator.trim(data.type).length == 0) {
+            error.type = "React type is left empty";
+        } else if (!["LIKE", "DISLIKE"].includes(data.type.toUpperCase())) {
+            error.type = "LIKE, and DISLIKE are only valid react types";
+        }
+    }
+
+    return error;
+};
+
+const postNewsReactData = data => {
+    let error = {};
+
+    if (!Validator.isMongoId(data.newsID)) {
+        error.categoryID = "Provide valid id for route parameter newsID";
+    }
+
+    if (data.type) {
+        if (Validator.trim(data.type).length == 0) {
+            error.type = "React type is left empty";
+        } else if (!["HAPPY", "SAD", "SURPRISED", "HYSTERIC", "ANGRY"].includes(data.type.toUpperCase())) {
+            error.type = "HAPPY, SAD, SURPRISED, HYSTERIC, and ANGRY are only valid react types";
+        }
+    }
+
+    return error;
+};
+
+const getPopularNewsData = data => {
+    const error = {};
+
+    if (!["THIS_WEEK", "THIS_MONTH", "PREVIOUS_WEEK", "PREVIOUS_MONTH"].includes(data.period.toUpperCase())) {
+        error.period = "THIS_WEEK, THIS_MONTH, PREVIOUS_WEEK, and PREVIOUS_MONTH are only valid period types for route parameter";
+    }
+
+    if (!Validator.isBoolean(data.isCategoryWise.toString())) {
+        error.isCategoryWise = "True and false are only valid route parameter for isCategoryWise";
+    }
+
+    if (!Validator.isNumeric(data.limit.toString())) {
+        error.limit = "Only numeric value is supported for route parameter limit";
+    } else if(Number(data.limit) == 0) { 
+        error.limit = "Route parameter limit cannot be zero";
+    }
+
+    if (!Validator.isNumeric(data.threshold.toString())) {
+        error.limit = "Only numeric value is supported for route parameter threshold";
+    }
+
+    return error;
+};
+
+export { addUserData, uniqueUserData, loginData, updateUserData, addCategoryData, updateCategoryData, addNewsData, getAllNewsParams, updateNewsData, addCommentData, updateCommentData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData };

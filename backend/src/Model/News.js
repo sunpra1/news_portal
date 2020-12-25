@@ -1,6 +1,6 @@
 import Mongoose from 'mongoose';
-import { commentSchema } from './Schema/Comment.js';
-import { newsReactSchema } from './Schema/NewsReact.js';
+import { commentSchema } from './Comment.js';
+import { newsReactSchema } from './NewsReact.js';
 
 const newsSchema = Mongoose.Schema({
     title: {
@@ -23,10 +23,6 @@ const newsSchema = Mongoose.Schema({
         required: [true, "Author of the news is required"],
         ref: "User"
     },
-    tags: [{
-        type: String,
-        trim: true
-    }],
     images: [{
         type: String,
         trim: true

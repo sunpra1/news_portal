@@ -13,7 +13,7 @@ class AdminRoute extends Component {
             <Route
                 {...rest}
                 render={props =>
-                    user && user.role === "admin"
+                    user && user.role === "ADMIN"
                         ?
                         <Component {...props} />
                         :

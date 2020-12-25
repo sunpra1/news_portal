@@ -1,28 +1,39 @@
 import Express from 'express';
 import Category from '../Model/Category.js';
 import { Auth, AdminUser } from '../Middleware/Middleware.js';
-import { validateCategory, validateUpdateCategory } from '../Utils/Validate.js';
+import { addCategoryData, updateCategoryData } from '../Utils/Validate.js';
 
 const categoryRoute = new Express.Router();
 
 categoryRoute.route('/')
     .get(async (req, res, next) => {
-        const categories = await Category.find({});           
-        res.send(categories);           
+        const categories = await Category.find({});
+        res.send(categories);
     })
     .post(Auth, AdminUser, async (req, res, next) => {
-        const validationErrors = validateCategory(req.body);
+        const validationErrors = await addCategoryData(req.body);
         if (Object.keys(validationErrors).length == 0) {
-            const category = await Category.create(req.body).catch(e => next(e));                
-            res.status(201).send(category);                
+            const category = await Category.create(req.body).catch(e => next(e));
+            res.status(201).send(category);
         } else {
             res.status(400).send({ message: validationErrors });
         }
     });
 
 categoryRoute.route("/:categoryID")
+    .get(async (req, res, next) => {
+        try {
+            const category = await Category.findById(req.params.categoryID);
+            await category.populate("news").execPopulate();
+            await category.populate("news.author").populate("news.comments").populate("news.reacts").execPopulate();
+            await category.populate("news.comments.user").execPopulate();
+            res.send(category);
+        } catch (error) {
+            next(error);
+        }
+    })
     .put(AdminUser, async (req, res, next) => {
-        const validationErrors = validateUpdateCategory({ ...req.body, ...req.params});
+        const validationErrors = await updateCategoryData({ ...req.body, ...req.params });
         if (Object.keys(validationErrors).length == 0) {
             let category = await Category.findById(req.params.categoryID).catch(e => next(e));
             if (category) {
@@ -41,7 +52,7 @@ categoryRoute.route("/:categoryID")
                 const error = new Error("Category with id: " + req.params.categoryID + " not found");
                 error.statusCode = 400;
                 next(error);
-            }            
+            }
         } else {
             res.status(400).send({ message: validationErrors });
         }

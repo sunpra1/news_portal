@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { UserContext } from '../context/UserContext';
 import Axios from 'axios';
 import { notify } from './Notification';
-import NotificationList from './NotificationList';
 import './CSS.css';
 import DefaultImage from './user.png';
 import { BaseURL } from '../utils/constant';
@@ -37,7 +36,7 @@ class Navbar extends Component {
     render() {
         const { user } = this.context;
         return (
-            <nav className="navbar navbar-expand-sm bg-nav d-flex justify-context-center fixed-top">
+            <nav className="navbar navbar-expand-sm bg-nav d-flex justify-context-center">
                 <button className="navbar-toggler rounded-0" type="button" data-toggle="collapse" data-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
                     <FontAwesomeIcon className="navbar-toggler-icon text-light" icon={faBars} />
                 </button>

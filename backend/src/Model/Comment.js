@@ -16,14 +16,14 @@ const commentSchema = Mongoose.Schema({
         required: true,
         ref: "User"
     },
-    news: {
-        type: Mongoose.Schema.Types.ObjectId,
-        ref: "News",
-        required: true
-    },
     reacts: [commentReactSchema]
 }, {
     timestamps: true
 });
 
+commentSchema.statics.fillable = ["comment", "approved"];
+
+const Comment = Mongoose.model("Comment", commentSchema);
+
 export { commentSchema };
+export default Comment;

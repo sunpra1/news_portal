@@ -85,8 +85,7 @@ userSchema.methods.generateAuthToken = async function () {
 };
 
 userSchema.statics.isUnique = async (phone) => {
-    const user = await User.findOne({ phone });
-    return user ? false : true;
+    return await User.findOne({ phone }) ? false : true;
 };
 
 userSchema.methods.toJSON = function () {

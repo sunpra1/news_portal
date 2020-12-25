@@ -3,9 +3,11 @@ import { Redirect } from 'react-router-dom';
 import Axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faAt, faLock, faPhone } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faLock, faPhone } from '@fortawesome/free-solid-svg-icons';
 import { BaseURL } from '../utils/constant';
 import Validator from 'validator';
+import Footer from '../layout/Footer';
+import Navbar from '../layout/Navbar';
 
 export default class Register extends Component {
     static contextType = UserContext;
@@ -64,31 +66,36 @@ export default class Register extends Component {
 
     onInputFieldFocus = (e) => {
         let { errors } = this.state;
-        console.log(e.target.name);
         delete errors[e.target.name];
         this.setState({ errors });
-        // console.log(errors);
     };
 
     onfullNameBlur = e => {
-        if (Validator.trim(e.target.value).length === 0) {
+        const fullName = Validator.trim(e.target.value);
+        if (fullName.length === 0) {
             let { errors } = this.state;
             errors.fullName = "Full name is required";
             this.setState({ errors });
+        } else if (fullName.length > 0 && Validator.isNumeric(fullName)) {
+            let { errors } = this.state;
+            errors.fullName = "Full name cannot be numeric characters";
+            this.setState({ errors });
+        } else if (fullName.length > 0) {
+            let containsNumeric = false;
+            for (let i = 0; i <= 10; i++) {
+                if (fullName.indexOf(i) > -1) {
+                    containsNumeric = true;
+                    break;
+                }
+            }
+
+            if (containsNumeric) {
+                let { errors } = this.state;
+                errors.fullName = "Full name cannot contain numeric characters";
+                this.setState({ errors });
+            }
         }
     };
-
-    // onEmailFocus = () => {
-    //     let { errors } = this.state;
-    //     delete errors.email;
-    //     this.setState({ errors });
-    // }
-
-    // onPasswordFocus = () => {
-    //     let { errors } = this.state;
-    //     delete errors.password;
-    //     this.setState({ errors });
-    // }
 
     onPasswordBlur = () => {
         let { errors, password, confirm_password } = this.state;
@@ -106,12 +113,6 @@ export default class Register extends Component {
         }
         this.setState({ errors });
     };
-
-    // onConfirmPasswordFocus = () => {
-    //     let { errors } = this.state;
-    //     delete errors.confirm_password;
-    //     this.setState({ errors });
-    // }
 
     onConfirmPasswordBlur = () => {
         let { errors, password, confirm_password } = this.state;
@@ -170,8 +171,14 @@ export default class Register extends Component {
     validate = inputs => {
         const errors = {};
 
-        if (!inputs.fullName)
+        if (!inputs.fullName) {
             errors.fullName = "Full name is required";
+        }
+        else {
+            if (Validator.isNumeric(inputs.fullName))
+                errors.fullName = "Full name cannot be numeric characters";
+        }
+
 
         if (!inputs.phone)
             errors.phone = "Phone is required";
@@ -198,78 +205,82 @@ export default class Register extends Component {
         const { errors, fullName, phone, password, confirm_password } = this.state;
         const { user } = this.context;
 
-        if (user && user.role == "ADMIN") {
-            return <Redirect to="/categories" />;
+        if (user && user.role === "ADMIN") {
+            return <Redirect to="/" />;
         }
 
         return (
-            <div className="container-fluid content-height bg-grey">
-                <div className="row m-0 p-4">
-                    <div className="col-md-6 dami-bg mx-auto card rounded-0 box-shadow">
-                        <div className="card-header">
-                            <h5 className="modal-title text-light">REGISTRATION FORM</h5>
-                        </div>
-                        <div className="card-body p-3">
-                            <form onSubmit={this.onFormSubmit} method="post">
-                                <div className="form-group">
-                                    <label htmlFor="fullName" className="text-light">FULL NAME</label>
-                                    <div className="input-group">
-                                        <div className="input-group-prepend">
-                                            <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faUser} /> </span>
-                                        </div>
-                                        <input type="text" name="fullName" value={fullName} onFocus={this.onInputFieldFocus} onBlur={this.onfullNameBlur} onChange={this.onChange} placeholder="YOUR FULL NAME" className={"form-control rounded-0 " + (errors.fullName ? "is-invalid" : "")} autoComplete="off" />
-                                        <div className="invalid-feedback">
-                                            <span>{errors.fullName}</span>
+            <>
+                <Navbar />
+                <div className="container-fluid content-height bg-grey">
+                    <div className="row m-0 p-4">
+                        <div className="col-md-6 dami-bg mx-auto card rounded-0 box-shadow">
+                            <div className="card-header">
+                                <h5 className="modal-title text-light">REGISTRATION FORM</h5>
+                            </div>
+                            <div className="card-body p-3">
+                                <form onSubmit={this.onFormSubmit} method="post">
+                                    <div className="form-group">
+                                        <label htmlFor="fullName" className="text-light">FULL NAME</label>
+                                        <div className="input-group">
+                                            <div className="input-group-prepend">
+                                                <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faUser} /> </span>
+                                            </div>
+                                            <input type="text" name="fullName" value={fullName} onFocus={this.onInputFieldFocus} onBlur={this.onfullNameBlur} onChange={this.onChange} placeholder="YOUR FULL NAME" className={"form-control rounded-0 " + (errors.fullName ? "is-invalid" : "")} autoComplete="off" />
+                                            <div className="invalid-feedback">
+                                                <span>{errors.fullName}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="form-group">
-                                    <label htmlFor="phone" className="text-light">Phone</label>
-                                    <div className="input-group">
-                                        <div className="input-group-prepend">
-                                            <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faPhone} /> </span>
-                                        </div>
-                                        <input type="number" name="phone" onFocus={this.onInputFieldFocus} onBlur={this.onPhoneBlur} value={phone} onChange={this.onChange} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + ((errors.phone) ? "is-invalid" : "")} autoComplete="off" />
-                                        <div className="invalid-feedback">
-                                            <span>{errors.phone}</span>
+                                    <div className="form-group">
+                                        <label htmlFor="phone" className="text-light">Phone</label>
+                                        <div className="input-group">
+                                            <div className="input-group-prepend">
+                                                <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faPhone} /> </span>
+                                            </div>
+                                            <input type="number" name="phone" onFocus={this.onInputFieldFocus} onBlur={this.onPhoneBlur} value={phone} onChange={this.onChange} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + ((errors.phone) ? "is-invalid" : "")} autoComplete="off" />
+                                            <div className="invalid-feedback">
+                                                <span>{errors.phone}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="form-group">
-                                    <label htmlFor="passeord" className="text-light">PASSWORD</label>
-                                    <div className="input-group">
-                                        <div className="input-group-prepend">
-                                            <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
-                                        </div>
-                                        <input type="password" name="password" onFocus={this.onInputFieldFocus} value={password} onBlur={this.onPasswordBlur} onChange={this.onChange} placeholder="YOUR PASSWORD" className={"form-control rounded-0 " + (errors.password ? "is-invalid" : "")} autoComplete="off" />
-                                        <div className="invalid-feedback">
-                                            <span>{errors.password}</span>
+                                    <div className="form-group">
+                                        <label htmlFor="passeord" className="text-light">PASSWORD</label>
+                                        <div className="input-group">
+                                            <div className="input-group-prepend">
+                                                <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
+                                            </div>
+                                            <input type="password" name="password" onFocus={this.onInputFieldFocus} value={password} onBlur={this.onPasswordBlur} onChange={this.onChange} placeholder="YOUR PASSWORD" className={"form-control rounded-0 " + (errors.password ? "is-invalid" : "")} autoComplete="off" />
+                                            <div className="invalid-feedback">
+                                                <span>{errors.password}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="form-group">
-                                    <label htmlFor="confirm_password" className="text-light">CONFIEM PASSWORD</label>
-                                    <div className="input-group">
-                                        <div className="input-group-prepend">
-                                            <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
-                                        </div>
-                                        <input type="password" name="confirm_password" onFocus={this.onInputFieldFocus} onBlur={this.onConfirmPasswordBlur} value={confirm_password} onChange={this.onChange} placeholder="CONFIRM PASSWORD" className={"form-control rounded-0 " + (errors.confirm_password ? "is-invalid" : "")} autoComplete="off" />
-                                        <div className="invalid-feedback">
-                                            <span>{errors.confirm_password}</span>
+                                    <div className="form-group">
+                                        <label htmlFor="confirm_password" className="text-light">CONFIEM PASSWORD</label>
+                                        <div className="input-group">
+                                            <div className="input-group-prepend">
+                                                <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
+                                            </div>
+                                            <input type="password" name="confirm_password" onFocus={this.onInputFieldFocus} onBlur={this.onConfirmPasswordBlur} value={confirm_password} onChange={this.onChange} placeholder="CONFIRM PASSWORD" className={"form-control rounded-0 " + (errors.confirm_password ? "is-invalid" : "")} autoComplete="off" />
+                                            <div className="invalid-feedback">
+                                                <span>{errors.confirm_password}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="card-footer text-center form-group rounded-0">
-                                    <button type="submit" className="btn btn-success rounded-0" >REGISTER</button>
-                                </div>
-                            </form>
+                                    <div className="card-footer text-center form-group rounded-0">
+                                        <button type="submit" className="btn btn-success rounded-0" >REGISTER</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+                <Footer />
+            </>
         );
     }
 }
