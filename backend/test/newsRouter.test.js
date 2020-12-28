@@ -6,6 +6,7 @@ describe("Testing routes on news router", () => {
     let categoryId;
     let anotherCategoryId;
     let newsId;
+    let commentId;
 
     beforeAll(async done => {
         const newUser = {
@@ -203,11 +204,11 @@ describe("Testing routes on news router", () => {
 
     test("Should not update news with invalid id", async () => {
         const invalidID = "Invalid ID";
-        const expectedMessage = "Parameter news id, " + invalidID + " is invalid";
+        const expectedMessage = "Provide valid id for route parameter newsID";
         const putNewsResponse = await Request.put("/news/" + invalidID)
             .set("authorization", adminToken);
         expect(putNewsResponse.statusCode).toBe(400);
-        expect(putNewsResponse.body.message).toBe(expectedMessage);
+        expect(putNewsResponse.body.message.newsID).toBe(expectedMessage);
     });
 
     test("Should update news with invalid id", async () => {
@@ -218,6 +219,7 @@ describe("Testing routes on news router", () => {
         const putNewsResponse = await Request.put("/news/" + newsId)
             .set("authorization", adminToken)
             .send(updatedCategory);
+
         expect(putNewsResponse.statusCode).toBe(200);
         expect(putNewsResponse.body.title).toBe(updatedCategory.title);
         expect(putNewsResponse.body.category._id).toBe(updatedCategory.category);
@@ -236,11 +238,125 @@ describe("Testing routes on news router", () => {
 
     test("Should not delete news with invalid id", async () => {
         const invalidID = "Invalid ID";
-        const expectedMessage = "Parameter news id, " + invalidID + " is invalid";
+        const expectedMessage = "Provide valid id for route parameter newsID";
         const deleteNewsResponse = await Request.delete("/news/" + invalidID)
             .set("authorization", adminToken);
         expect(deleteNewsResponse.statusCode).toBe(400);
-        expect(deleteNewsResponse.body.message).toBe(expectedMessage);
+        expect(deleteNewsResponse.body.message.newsID).toBe(expectedMessage);
+    });
+
+    /*-----------------------*/
+
+    test("Should not post comment on news with id that doesn't exist", async () => {
+        const newComment = {
+            comment: "Sample comment on news"
+        };
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const expectedMessage = "News with id: " + idThatDoesntExist + " not found";
+        const postCommentResponse = await Request.post("/news/" + idThatDoesntExist + "/comments")
+            .set("authorization", adminToken)
+            .send(newComment);
+
+        expect(postCommentResponse.statusCode).toBe(400);
+        expect(postCommentResponse.body.message).toBe(expectedMessage);
+    });
+
+    test("Should not post comment on news with invalid id", async () => {
+        const newComment = {
+            comment: "Sample comment on news"
+        };
+        const invalidID = "Invalid ID";
+        const expectedMessage = "Provide valid id for route parameter newsID";
+        const postCommentResponse = await Request.post("/news/" + invalidID + "/comments")
+            .set("authorization", adminToken)
+            .send(newComment);
+        expect(postCommentResponse.statusCode).toBe(400);
+        expect(postCommentResponse.body.message.newsID).toBe(expectedMessage);
+    });
+
+    test("Should post comment on news", async () => {
+        const newComment = {
+            comment: "Sample comment on news"
+        };
+
+        const postCommentResponse = await Request.post("/news/" + newsId + "/comments")
+            .set("authorization", adminToken)
+            .send(newComment);
+        commentId = postCommentResponse.body._id;
+
+        expect(postCommentResponse.statusCode).toBe(201);
+        expect(postCommentResponse.body.comment).toBe(newComment.comment);
+    });
+
+    test("Should not update comment on news with id that doesn't exist", async () => {
+        const newComment = {
+            comment: "Sample comment on news updated"
+        };
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const expectedMessage = "Comment with id: " + idThatDoesntExist + " not found";
+        const updateCommentResponse = await Request.put("/news/" + newsId + "/comments/" + idThatDoesntExist)
+            .set("authorization", adminToken)
+            .send(newComment);
+
+        expect(updateCommentResponse.statusCode).toBe(400);
+        expect(updateCommentResponse.body.message).toBe(expectedMessage);
+    });
+
+    test("Should not update comment on news with invalid id", async () => {
+        const newComment = {
+            comment: "Sample comment on news updated"
+        };
+        const invalidID = "Invalid ID";
+        const expectedMessage = "Provide valid id for route parameter commentID";
+        const updateCommentResponse = await Request.put("/news/" + newsId + "/comments/" + invalidID)
+            .set("authorization", adminToken)
+            .send(newComment);
+        expect(updateCommentResponse.statusCode).toBe(400);
+        expect(updateCommentResponse.body.message.commentID).toBe(expectedMessage);
+    });
+
+    test("Should update comment on news", async () => {
+        const newComment = {
+            comment: "Sample comment on news updated"
+        };
+        const updateCommentResponse = await Request.put("/news/" + newsId + "/comments/" + commentId)
+            .set("authorization", adminToken)
+            .send(newComment);
+
+        expect(updateCommentResponse.statusCode).toBe(200);
+        expect(updateCommentResponse.body.comment).toBe(newComment.comment);
+    });
+
+
+    test("Should not delete comment on news with id that doesn't exist", async () => {
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const expectedMessage = "Comment with id: " + idThatDoesntExist + " not found";
+        const deleteCommentResponse = await Request.delete("/news/" + newsId + "/comments/" + idThatDoesntExist)
+            .set("authorization", adminToken);
+
+        expect(deleteCommentResponse.statusCode).toBe(400);
+        expect(deleteCommentResponse.body.message).toBe(expectedMessage);
+    });
+
+    test("Should not delete comment on news with invalid id", async () => {
+        const invalidID = "Invalid ID";
+        const expectedMessage = "Provide valid id for route parameter commentID";
+        const deleteCommentResponse = await Request.delete("/news/" + newsId + "/comments/" + invalidID)
+            .set("authorization", adminToken);
+        expect(deleteCommentResponse.statusCode).toBe(400);
+        expect(deleteCommentResponse.body.message.commentID).toBe(expectedMessage);
+    });
+
+
+
+
+
+    /*---Should remain at last--*/
+    test("Should delete comment on news", async () => {
+        const deleteCommentResponse = await Request.delete("/news/" + newsId + "/comments/" + commentId)
+            .set("authorization", adminToken);
+
+        expect(deleteCommentResponse.statusCode).toBe(200);
     });
 
     test("Should delete news with valid id", async () => {
@@ -249,5 +365,4 @@ describe("Testing routes on news router", () => {
         expect(deleteNewsResponse.statusCode).toBe(200);
         expect(deleteNewsResponse.body._id).toBe(newsId);
     });
-
 });

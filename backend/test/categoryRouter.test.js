@@ -38,13 +38,13 @@ describe("Testing routes on category router", () => {
     });
 
     test("Should add new category", async () => {
-        const newCategory = { category: "Category Three" };
+        const newCategory = { category: "Unique Category" };
         const newCategoryRes = await Request.post("/categories")
             .set("authorization", adminToken)
             .send(newCategory);
 
         expect(newCategoryRes.statusCode).toBe(201);
-        expect(newCategoryRes.body.category).toBe(newCategory.category);
+        expect(newCategoryRes.body.category).toBe(newCategory.category.toUpperCase());
     });
 
     test("Should get all categories", async () => {
@@ -53,17 +53,28 @@ describe("Testing routes on category router", () => {
         expect(getAllCatRes.body.length > 0).toBe(true);
     });
 
-    test("Should not find category with id that doesn't exist while updating", async () => {
-        const invalidId = "5f2cfd905a6bda2740a2c234";
+    test("Should not find category with invalid id while updating", async () => {
+        const invalidId = "Invalid id";
         const updatedCategory = { category: "Category Updated" };
-        const expectedMessage = "Category with id: " + invalidId + " not found";
+        const expectedMessage = "Provide valid id for route parameter categoryID";
         const updateCategoryRes = await Request.put("/categories/" + invalidId)
             .send(updatedCategory)
             .set("authorization", adminToken);
 
         expect(updateCategoryRes.statusCode).toBe(400);
-        expect(updateCategoryRes.body.message).toBe(expectedMessage);
+        expect(updateCategoryRes.body.message.categoryID).toBe(expectedMessage);
+    });
 
+    test("Should not find category with id that doesn't exist while updating", async () => {
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const updatedCategory = { category: "Category Updated" };
+        const expectedMessage = "Category with id: " + idThatDoesntExist + " not found";
+        const updateCategoryRes = await Request.put("/categories/" + idThatDoesntExist)
+            .send(updatedCategory)
+            .set("authorization", adminToken);
+
+        expect(updateCategoryRes.statusCode).toBe(400);
+        expect(updateCategoryRes.body.message).toBe(expectedMessage);
     });
 
     test("Shoud not update category with empty value for category", async () => {
@@ -83,7 +94,7 @@ describe("Testing routes on category router", () => {
             .send(updatedCategory);
         expect(updateCategoryRes.statusCode).toBe(200);
         expect(updateCategoryRes.body._id).toBe(categoryId);
-        expect(updateCategoryRes.body.category).toBe(updatedCategory.category);
+        expect(updateCategoryRes.body.category).toBe(updatedCategory.category.toUpperCase());
     });
 
     test("Should not find category with id that doesn't exist while deleting", async () => {
@@ -99,12 +110,11 @@ describe("Testing routes on category router", () => {
 
     test("Should not find category with invalid id while deleting", async () => {
         const invalidId = "Invalid id";
-        const expectedMessage = "Provided Id is invalid";
+        const expectedMessage = "Provide valid id for route parameter categoryID";
         const deleteCatRes = await Request.delete("/categories/" + invalidId)
             .set("authorization", adminToken);
         expect(deleteCatRes.statusCode).toBe(400);
-        expect(deleteCatRes.body.message).toBe(expectedMessage);
-
+        expect(deleteCatRes.body.message.categoryID).toBe(expectedMessage);
     });
 
     test("Shoud delete category with " + categoryId, async () => {
@@ -113,4 +123,6 @@ describe("Testing routes on category router", () => {
         expect(deleteCatRes.statusCode).toBe(200);
         expect(deleteCatRes.body._id).toBe(categoryId);
     });
+
+    
 });

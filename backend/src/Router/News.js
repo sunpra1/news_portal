@@ -1,8 +1,8 @@
 import Express from 'express';
-import { AdminUser, Auth, DeleteComment, IfAuth, PostNews, UpdateAndDeleteNews, UpdateComment } from '../Middleware/Middleware.js';
+import { AdminUser, Auth, DeleteComment, IfAuth, PostNews, UpdateNews, UpdateComment, DeleteNews } from '../Middleware/Middleware.js';
 import { TakeCommentReactSchemaFillable, TakeCommentSchemaFillable, TakeNewsReactSchemaFillable, TakeNewsSchemaFillable } from '../Middleware/TakeFillables.js';
 import News from '../Model/News.js';
-import { addCommentData, addNewsData, getAllNewsParams, updateCategoryData, updateNewsData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData } from '../Utils/Validate.js';
+import { addCommentData, addNewsData, getAllNewsParams, updateCategoryData, updateNewsData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, updateCommentData } from '../Utils/Validate.js';
 import { newsImageUpload } from '../Utils/fileUpload.js';
 import Category from '../Model/Category.js';
 import Validator from 'validator';
@@ -137,7 +137,6 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                         }
                     }).execPopulate();
                     data = cat.news;
-
                 }
 
                 else if (search !== "null" && sortOption !== "null") {
@@ -219,7 +218,7 @@ newsRouter.route("/:newsID")
             next(error);
         }
     })
-    .put(UpdateAndDeleteNews, TakeNewsSchemaFillable, async (req, res, next) => {
+    .put(UpdateNews, TakeNewsSchemaFillable, async (req, res, next) => {
         try {
             newsImageUpload.array("images")(req, res, async error => {
                 if (error) {
@@ -232,40 +231,34 @@ newsRouter.route("/:newsID")
                     }
                     next(error);
                 } else {
-                    const validationErrors = updateNewsData(req.body);
-                    if (Object.keys(validationErrors).length == 0) {
-                        const news = req.news;
-                        if (req.body.category && req.body.category != news.category.id.toString()) {
-                            const oldCategory = await Category.findById(news.category);
-                            oldCategory.news = oldCategory.news.filter(newsID => newsID.toString() != news.id.toString());
-                            await oldCategory.save();
+                    const news = req.news;
+                    if (req.body.category && req.body.category != news.category.id.toString()) {
+                        const oldCategory = await Category.findById(news.category);
+                        oldCategory.news = oldCategory.news.filter(newsID => newsID.toString() != news.id.toString());
+                        await oldCategory.save();
 
-                            const updatedCategory = await Category.findById(req.body.category);
-                            if (!updatedCategory.news.some(newsID => newsID.toString() == news.id.toString())) {
-                                updatedCategory.news.push(news.id);
-                                await updatedCategory.save();
-                            }
-                            news.category = updatedCategory.id;
+                        const updatedCategory = await Category.findById(req.body.category);
+                        if (!updatedCategory.news.some(newsID => newsID.toString() == news.id.toString())) {
+                            updatedCategory.news.push(news.id);
+                            await updatedCategory.save();
                         }
-
-                        if (req.files && req.files.length > 0) {
-                            if (news.images && news.images.length > 0) {
-                                news.images.forEach(image => {
-                                    if (FS.existsSync(Path.join(Path.resolve(), image))) {
-                                        FS.unlinkSync(Path.join(Path.resolve(), image));
-                                    }
-                                });
-                            }
-                            news.images = req.files.map(file => file.path);
-                        }
-
-                        Object.keys(req.body).forEach(key => news[key] = req.body[key]);
-                        await news.save();
-                        await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
-                        res.send(news);
-                    } else {
-                        res.status(400).send({ message: validationErrors });
+                        news.category = updatedCategory.id;
                     }
+
+                    if (req.files && req.files.length > 0) {
+                        if (news.images && news.images.length > 0) {
+                            news.images.forEach(image => {
+                                if (FS.existsSync(Path.join(Path.resolve(), image))) {
+                                    FS.unlinkSync(Path.join(Path.resolve(), image));
+                                }
+                            });
+                        }
+                        news.images = req.files.map(file => file.path);
+                    }
+                    Object.keys(req.body).forEach(key => news[key] = req.body[key]);
+                    await news.save();
+                    await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
+                    res.send(news);
                 }
             });
         } catch (error) {
@@ -279,7 +272,7 @@ newsRouter.route("/:newsID")
             next(error);
         }
     })
-    .delete(UpdateAndDeleteNews, async (req, res, next) => {
+    .delete(DeleteNews, async (req, res, next) => {
         try {
             const news = req.news;
             const newsAuthor = await User.findById(news.author);
@@ -331,38 +324,31 @@ newsRouter.route("/:newsID/comments")
 newsRouter.route("/:newsID/comments/:commentID")
     .put(UpdateComment, async (req, res, next) => {
         try {
-            const validationErrors = updateCategoryData({ ...req.data, ...req.params });
-            if (Object.keys(validationErrors).length == 0) {
-                const news = req.news;
-                const comment = req.comment;
-                Object.keys(req.body).forEach(key => {
-                    comment[key] = req.body[key];
-                });
-                await news.save();
-                res.send(comment);
-            } else {
-                res.status(400).send({ message: validationErrors });
-            }
+            const news = req.news;
+            const comment = req.comment;
+            Object.keys(req.body).forEach(key => {
+                comment[key] = req.body[key];
+            });
+            await news.save();
+            res.send(comment);
         } catch (error) {
             next(error);
         }
     })
     .delete(DeleteComment, async (req, res, next) => {
         try {
-            const validationErrors = deleteCommentData(req.params);
-            if (Object.keys(validationErrors).length == 0) {
-                const news = req.news;
-                const comment = req.comment;
-                comment.remove();
-                await news.save();
-                res.send(comment);
-            } else {
-                res.status(400).send({ message: validationErrors });
-            }
+            const news = req.news;
+            const comment = req.comment;
+            comment.remove();
+            await news.save();
+            res.send(comment);
         } catch (error) {
             next(error);
         }
     });
+
+
+/*--Tested--*/
 
 newsRouter.route("/:newsID/comments/:commentID/toggleApprove")
     .put(AdminUser, async (req, res, next) => {
@@ -415,7 +401,11 @@ newsRouter.route("/:newsID/reacts")
                     let react;
                     if (index >= 0) {
                         react = news.reacts[index];
-                        react.type = req.body.type;
+                        if (react.type == req.body.type) {
+                            react.delete();
+                        } else {
+                            react.type = req.body.type;
+                        }
                     } else {
                         react = new NewsReact(req.body);
                         react.user = req.user.id;
@@ -449,7 +439,11 @@ newsRouter.route("/:newsID/comments/:commentID/reacts")
                         let react;
                         if (index >= 0) {
                             react = comment.reacts[index];
-                            react.type = req.body.type;
+                            if (react.type == req.body.type) {
+                                react.delete();
+                            } else {
+                                react.type = req.body.type;
+                            }
                         } else {
                             react = new CommentReact(req.body);
                             react.user = req.user.id;
@@ -545,6 +539,23 @@ newsRouter.route("/:period/:isCategoryWise/:limit/:threshold")
         } catch (error) {
             next(error);
         }
+    });
+
+newsRouter.route("/search_suggestions/:searchTerm/:limit")
+    .get(async (req, res, next) => {
+        try {
+            const validationErrors = getSearchSuggestionsData(req.params);
+            if (Object.keys(validationErrors).length == 0) {
+                const newsSuggestions = await News.find({ title: { $regex: ".*" + req.params.searchTerm + ".*", $options: "i" } }).select("title").limit(Number(req.params.limit));
+                res.send(newsSuggestions);
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+
+        } catch (error) {
+            next(error);
+        }
+
     });
 
 export default newsRouter;

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfo, faPenAlt, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faExclamationTriangle, faInfo, faPenAlt, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Axios from 'axios';
 import Loading from '../layout/Loading';
 import { notify } from '../layout/Notification';
@@ -17,44 +17,48 @@ class CategoryList extends Component {
 
     onCategoryEditClicked = (category, position) => {
         if (category.news.length > 0) {
-            const deleteDialog = <Dialog headerText="INFORMATION" bodyText={`The category has been already refrenced ${category.news.length} times to create the news. Updating of news is prohibited.`} positiveButton={{ text: "OK", handler: () => this.setState({ dialog: null }) }} icon={<FontAwesomeIcon icon={faInfo} />} />;
+            const deleteDialog = <Dialog headerText="INFORMATION" bodyText={`The category has been already refrenced ${category.news.length} times to create the news. Updating of news is prohibited.`} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faInfo} />} />;
             this.setState({ dialog: deleteDialog });
         } else {
-            console.log(this.props.history);
             this.props.history.push({
-                pathname: `/category/update/${category._id}`, 
+                pathname: `/category/update/${category._id}`,
                 category
             });
         }
     };
 
     onCategoryDeleteClicked = (category, position) => {
-        console.log("click");
         if (category.news.length > 0) {
-            const deleteDialog = <Dialog headerText="INFORMATION" bodyText={`The category has been already refrenced ${category.news.length} times to create the news. Deletion of news is prohibited.`} positiveButton={{ text: "OK", handler: () => this.setState({ dialog: null }) }} icon={<FontAwesomeIcon icon={faInfo} />} />;
+            const deleteDialog = <Dialog headerText="INFORMATION" bodyText={`The category has been already refrenced ${category.news.length} times to create the news. Deletion of news is prohibited.`} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faInfo} />} />;
             this.setState({ dialog: deleteDialog });
         } else {
-            if (window.confirm("Please confirm to delete this category")) {
-                Axios({
-                    method: "delete",
-                    url: `${BaseURL}categories/${category._id}`,
-                    headers: {
-                        authorization: localStorage.getItem("token")
-                    }
-                })
-                    .then(_ => {
-                        this.props.deleteCategory(position);
-                        notify("success", "Category deleted successfully");
-                    })
-                    .catch(e => {
-                        if (e.response && e.response.data.message) {
-                            notify("danger", e.response.data.message);
-                        } else {
-                            notify("danger", "Unable to delete your category");
-                        }
-                    });
-            }
+            const deleteDialog = <Dialog headerText="Are you sure?" bodyText="Please confirm to delete the category." positiveButton={{ text: "OK", handler: () => this.deleteHandler(category, position) }} negativeButton={{ text: "Cancel" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: deleteDialog });
         }
+    };
+
+    deleteHandler = (category, position) => {
+        const token = localStorage.getItem("token");
+        Axios({
+            method: "delete",
+            url: `${BaseURL}categories/${category._id}`,
+            headers: {
+                authorization: token
+            }
+        }).then(_ => {
+            this.props.deleteCategory(position);
+            notify("success", "Category deleted successfully");
+        }).catch(e => {
+            if (e.response && e.response.data.message) {
+                if (Object.keys(e.response.data.message).length > 0) {
+                    this.setState({ errors: e.response.data.message });
+                } else {
+                    this.setState({ errors: { error: e.response.data.message } });
+                }
+            } else {
+                this.setState({ errors: { error: "Unable to delete your category" } });
+            }
+        });
     };
 
     render() {
@@ -88,7 +92,7 @@ class CategoryList extends Component {
         else {
             return (
                 <>
-                    { dialog }
+                    { dialog}
 
                     <div className="table-responsive">
                         <table className="table table-stripped table-bordered table-hover">

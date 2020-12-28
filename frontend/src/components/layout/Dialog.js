@@ -21,6 +21,15 @@ class Dialog extends Component {
         };
     }
 
+    // static getDerivedStateFromProps = (props, state) => {
+    //     if (!state.modalIsOpen) {
+    //         return {
+    //             modalIsOpen: true
+    //         };
+    //     }
+    //     return null;
+    // };
+
     openModal = () => {
         this.setState({ modalIsOpen: true });
     };
@@ -45,13 +54,19 @@ class Dialog extends Component {
         this.closeModal();
     };
 
+    onAfterClose = () => {
+        if (this.props.clearDialog)
+            this.props.clearDialog();
+    };
+
     render() {
         const { icon, headerText, bodyText, positiveButton, negativeButton } = this.props;
         return (
             <Modal
                 isOpen={this.state.modalIsOpen}
                 onRequestClose={this.closeModal}
-                style={this.customStyles}>
+                style={this.customStyles}
+                onAfterClose={this.onAfterClose}>
                 <div className="col mx-auto card rounded-0 p-0">
                     <div className="card-header bg-info text-light rounded-0">
                         <h6 className="modal-title" id="exampleModalLabel">
@@ -60,7 +75,7 @@ class Dialog extends Component {
                         </h6>
                     </div>
                     <div className="card-body">
-                        <p style={{maxWidth: "40vh"}}> { bodyText ? bodyText : "" } </p>
+                        <p style={{ maxWidth: "40vh" }}> {bodyText ? bodyText : ""} </p>
                     </div>
                     <div className="card-footer d-flex justify-content-end">
                         {

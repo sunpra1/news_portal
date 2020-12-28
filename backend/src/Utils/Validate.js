@@ -127,6 +127,22 @@ const addCategoryData = async data => {
     return error;
 };
 
+const getCategoryData = data => {
+    let error = {};
+    if (!Validator.isMongoId(data.categoryID)) {
+        error.categoryID = "Provide valid id for route parameter categoryID";
+    }
+    return error;
+};
+
+const deleteCategoryData = data => {
+    let error = {};
+    if (!Validator.isMongoId(data.categoryID)) {
+        error.categoryID = "Provide valid id for route parameter categoryID";
+    }
+    return error;
+};
+
 const updateCategoryData = async (data) => {
     let error = {};
     if (!Validator.isMongoId(data.categoryID)) {
@@ -206,6 +222,10 @@ const getAllNewsParams = data => {
 const updateNewsData = data => {
     let error = {};
 
+    if (!Validator.isMongoId(data.newsID)) {
+        error.newsID = "Provide valid id for route parameter newsID";;
+    }
+
     if (data.title) {
         if (Validator.trim(data.title).length == 0) {
             error.title = "Title is left empty";
@@ -229,11 +249,21 @@ const updateNewsData = data => {
     return error;
 };
 
+const deleteNewsData = data => {
+    let error = {};
+
+    if (!Validator.isMongoId(data.newsID)) {
+        error.newsID = "Provide valid id for route parameter newsID";;
+    }
+
+    return error;
+};
+
 const addCommentData = data => {
     let error = {};
 
     if (!Validator.isMongoId(data.newsID)) {
-        error.categoryID = "Provide valid id for route parameter newsID";
+        error.newsID = "Provide valid id for route parameter newsID";
     }
 
     if (data.comment) {
@@ -251,11 +281,11 @@ const updateCommentData = data => {
     let error = {};
 
     if (!Validator.isMongoId(data.newsID)) {
-        error.categoryID = "Provide valid id for route parameter newsID";
+        error.newsID = "Provide valid id for route parameter newsID";
     }
 
     if (!Validator.isMongoId(data.commentID)) {
-        error.categoryID = "Provide valid id for route parameter commentID";
+        error.commentID = "Provide valid id for route parameter commentID";
     }
 
     if (data.comment) {
@@ -271,11 +301,11 @@ const deleteCommentData = data => {
     let error = {};
 
     if (!Validator.isMongoId(data.newsID)) {
-        error.categoryID = "Provide valid id for route parameter newsID";
+        error.newsID = "Provide valid id for route parameter newsID";
     }
 
     if (!Validator.isMongoId(data.commentID)) {
-        error.categoryID = "Provide valid id for route parameter commentID";
+        error.commentID = "Provide valid id for route parameter commentID";
     }
     return error;
 };
@@ -284,11 +314,11 @@ const toggleCommentApproveData = data => {
     let error = {};
 
     if (!Validator.isMongoId(data.newsID)) {
-        error.categoryID = "Provide valid id for route parameter newsID";
+        error.newsID = "Provide valid id for route parameter newsID";
     }
 
     if (!Validator.isMongoId(data.commentID)) {
-        error.categoryID = "Provide valid id for route parameter commentID";
+        error.commentID = "Provide valid id for route parameter commentID";
     }
 
     return error;
@@ -299,11 +329,11 @@ const postCommentReactData = data => {
     let error = {};
 
     if (!Validator.isMongoId(data.newsID)) {
-        error.categoryID = "Provide valid id for route parameter newsID";
+        error.newsID = "Provide valid id for route parameter newsID";
     }
 
     if (!Validator.isMongoId(data.commentID)) {
-        error.categoryID = "Provide valid id for route parameter commentID";
+        error.commentID = "Provide valid id for route parameter commentID";
     }
 
     if (data.type) {
@@ -321,7 +351,7 @@ const postNewsReactData = data => {
     let error = {};
 
     if (!Validator.isMongoId(data.newsID)) {
-        error.categoryID = "Provide valid id for route parameter newsID";
+        error.newsID = "Provide valid id for route parameter newsID";
     }
 
     if (data.type) {
@@ -348,15 +378,29 @@ const getPopularNewsData = data => {
 
     if (!Validator.isNumeric(data.limit.toString())) {
         error.limit = "Only numeric value is supported for route parameter limit";
-    } else if(Number(data.limit) == 0) { 
+    } else if (Number(data.limit) == 0) {
         error.limit = "Route parameter limit cannot be zero";
     }
 
     if (!Validator.isNumeric(data.threshold.toString())) {
-        error.limit = "Only numeric value is supported for route parameter threshold";
+        error.threshold = "Only numeric value is supported for route parameter threshold";
     }
 
     return error;
 };
 
-export { addUserData, uniqueUserData, loginData, updateUserData, addCategoryData, updateCategoryData, addNewsData, getAllNewsParams, updateNewsData, addCommentData, updateCommentData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData };
+
+const getSearchSuggestionsData = (data) => {
+    const error = {};
+    if (Validator.trim(data.searchTerm).length < 6) {
+        error.searchTerm = "Route parameter, search term must be greater then 5 characters";
+    }
+
+    if (!Validator.isNumeric(data.limit.toString())) {
+        error.limit = "Route parameter limit must be numeric character";
+    }
+
+    return error;
+};
+
+export { addUserData, uniqueUserData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getAllNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData };

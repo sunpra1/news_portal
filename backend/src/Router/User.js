@@ -1,7 +1,7 @@
 import Express from 'express';
 import User from '../Model/User.js';
 import Bcrypt from 'bcryptjs';
-import * as Validate from '../Utils/Validate.js';
+import { addUserData, uniqueUserData, loginData, updateUserData } from '../Utils/Validate.js';
 import { Auth } from '../Middleware/Middleware.js';
 import { userImageUpload } from '../Utils/fileUpload.js';
 import FS from 'fs';
@@ -12,7 +12,7 @@ const userRouter = Express.Router();
 userRouter.route("/register")
     .post(TakeUserSchemaFillable, async (req, res, next) => {
         try {
-            const validationErrors = await Validate.userData(req.body);            
+            const validationErrors = await addUserData(req.body);
             if (Object.keys(validationErrors).length == 0) {
                 let user = new User(req.body);
                 user.password = Bcrypt.hashSync(user.password, 8);
@@ -36,7 +36,7 @@ userRouter.route("/register")
 userRouter.route("/validate-unique-user")
     .post(async (req, res, next) => {
         try {
-            const validationErrors = Validate.uniqueUserData(req.body);
+            const validationErrors = uniqueUserData(req.body);
             if (Object.keys(validationErrors).length == 0) {
                 const user = await User.findOne({ phone: req.body.phone });
                 const isUnique = user ? false : true;
@@ -52,7 +52,7 @@ userRouter.route("/validate-unique-user")
 userRouter.route("/login")
     .post(async (req, res, next) => {
         try {
-            const validationErrors = Validate.loginData(req.body);
+            const validationErrors = loginData(req.body);
             if (Object.keys(validationErrors).length == 0) {
 
                 const user = await User.findOne({ phone: req.body.phone });
@@ -99,7 +99,7 @@ userRouter.route("/profile")
                     if (user.email == req.body.email) {
                         delete req.body.email;
                     }
-                    const validationErrors = Validate.userUpdateData(req.body);
+                    const validationErrors = updateUserData(req.body);
                     if (!validationErrors) {
                         if (req.body.password)
                             req.body.password = await Bcrypt.hash(req.body.password, 8);

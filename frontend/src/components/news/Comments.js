@@ -1,20 +1,22 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendar, faThumbsUp, faThumbsDown, faCheckCircle, faTimesCircle, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faThumbsUp, faThumbsDown, faCheckCircle, faTimesCircle, faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import User from './user.png';
 import DateFormat from 'dateformat';
 import { notify } from '../layout/Notification';
 import Axios from 'axios';
 import { BaseURL } from '../utils/constant';
 import React, { Component } from 'react';
+import Dialog from '../layout/Dialog';
 
 export default class Comments extends Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
-             errors: {}
-        }
+            errors: {},
+            dialog: null
+        };
     }
-    
+
     onToggleCommentVisibilityClicked = (comment, position) => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -42,6 +44,11 @@ export default class Comments extends Component {
     };
 
     onDeleteCommentClicked = (comment, position) => {
+        const deleteDialog = <Dialog headerText="Are you sure?" bodyText="Please confirm to delete the comment." positiveButton={{ text: "OK", handler: () => this.deleteHandler(comment, position) }} negativeButton={{ text: "Cancel" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+        this.setState({ dialog: deleteDialog });
+    };
+
+    deleteHandler = (comment, position) => {
         const token = localStorage.getItem("token");
         if (token) {
             Axios({
@@ -89,6 +96,7 @@ export default class Comments extends Component {
         if (this.props.comments.length > 0) {
             return (
                 <>
+                    {this.state.dialog}
                     {
                         this.props.comments.map((comment, position) => {
                             const reactsCount = this.getCommentReactCount(comment);
