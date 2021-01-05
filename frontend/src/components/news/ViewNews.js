@@ -149,7 +149,7 @@ export default class ViewNews extends Component {
                                                         </div>
                                                     </div>
                                                     {
-                                                        news.images.length > 0 &&
+                                                        news.images && news.images.length > 0 &&
                                                         (
                                                             <ImageSlider images={news.images} />
                                                         )

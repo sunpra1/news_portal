@@ -275,7 +275,7 @@ export default class News extends Component {
                                 <p className="text-info text-center">PAGE {page}</p>
                                 <ul className="pagination justify-content-center">
                                     <li className="page-item my-1 mx-2">
-                                        <button onClick={this.onPreviousPageBtnClicked} className="btn btn-light rounded-0" disabled={page === 1 || news.length === 0} >
+                                        <button onClick={this.onPreviousPageBtnClicked} className="btn btn-light rounded-0" disabled={page === 1} >
                                             <FontAwesomeIcon icon={faAngleLeft} />
                                         </button>
                                     </li>

@@ -245,8 +245,6 @@ describe("Testing routes on news router", () => {
         expect(deleteNewsResponse.body.message.newsID).toBe(expectedMessage);
     });
 
-    /*-----------------------*/
-
     test("Should not post comment on news with id that doesn't exist", async () => {
         const newComment = {
             comment: "Sample comment on news"
@@ -347,8 +345,93 @@ describe("Testing routes on news router", () => {
         expect(deleteCommentResponse.body.message.commentID).toBe(expectedMessage);
     });
 
+    /*-----------------------*/
 
+    test("Should not increase view of news with id that doesn't exist", async () => {
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const expectedMessage = "News with id: " + idThatDoesntExist + " not found";
+        const increaseNewsViewRes = await Request.put("/news/" + idThatDoesntExist + "/increaseView");
 
+        expect(increaseNewsViewRes.statusCode).toBe(400);
+        expect(increaseNewsViewRes.body.message).toBe(expectedMessage);
+    });
+
+    test("Should not increase view of news with invalid id", async () => {
+        const invalidID = "Invalid ID";
+        const expectedMessage = "Provide valid id for route parameter newsID";
+        const increaseNewsViewRes = await Request.put("/news/" + invalidID + "/increaseView");
+
+        expect(increaseNewsViewRes.statusCode).toBe(400);
+        expect(increaseNewsViewRes.body.message.newsID).toBe(expectedMessage);
+    });
+
+    test("Should increase view of news", async () => {
+        const newsDetailsBeforeIncreasingViewCount = await Request.get("/news/" + newsId);
+        const increaseNewsViewRes = await Request.put("/news/" + newsId + "/increaseView");
+        expect(increaseNewsViewRes.statusCode).toBe(200);
+        expect(Number(increaseNewsViewRes.body.views)).toBe(Number(newsDetailsBeforeIncreasingViewCount.body.views) + 1);
+    });
+
+    test("Should not react on news with id that doesn't exist", async () => {
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const expectedMessage = "News with id: " + idThatDoesntExist + " not found";
+        const newsReactResponse = await Request.put("/news/" + idThatDoesntExist + "/increaseView");
+
+        expect(newsReactResponse.statusCode).toBe(400);
+        expect(newsReactResponse.body.message).toBe(expectedMessage);
+    });
+
+    test("Should not react on view of news with invalid id", async () => {
+        const invalidID = "Invalid ID";
+        const expectedMessage = "Provide valid id for route parameter newsID";
+        const newsReactResponse = await Request.put("/news/" + invalidID + "/increaseView");
+
+        expect(newsReactResponse.statusCode).toBe(400);
+        expect(newsReactResponse.body.message.newsID).toBe(expectedMessage);
+    });
+
+    test("Should add react on news", async () => {
+        const newReact = {
+            type: "SAD"
+        };
+        const reactNewsResponse = await Request.post("/news/" + newsId + "/reacts")
+            .set("authorization", adminToken)
+            .send(newReact);
+        expect(reactNewsResponse.statusCode).toBe(200);
+        expect(reactNewsResponse.body.type).toBe(newReact.type);
+    });
+
+    test("Should not react on comment with id that doesn't exist", async () => {
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const expectedMessage = "Comment with id: " + idThatDoesntExist + " not found";
+        const commentReactResponse = await Request.post("/news/" + newsId + "/comments/" + idThatDoesntExist + "/reacts")
+            .set("authorization", adminToken);
+
+        expect(commentReactResponse.statusCode).toBe(400);
+        expect(commentReactResponse.body.message).toBe(expectedMessage);
+    });
+
+    test("Should not react on comment of news with invalid id", async () => {
+        const invalidID = "Invalid ID";
+        const expectedMessage = "Provide valid id for route parameter commentID";
+        const commentReactResponse = await Request.post("/news/" + newsId + "/comments/" + invalidID + "/reacts")
+            .set("authorization", adminToken);
+
+        expect(commentReactResponse.statusCode).toBe(400);
+        expect(commentReactResponse.body.message.commentID).toBe(expectedMessage);
+    });
+
+    test("Should add react on comment", async () => {
+        const newReact = {
+            type: "LIKE"
+        };
+        const reactCommentResponse = await Request.post("/news/" + newsId + "/comments/" + commentId + "/reacts")
+            .set("authorization", adminToken)
+            .send(newReact);
+
+        expect(reactCommentResponse.statusCode).toBe(200);
+        expect(reactCommentResponse.body.type).toBe(newReact.type);
+    });
 
 
     /*---Should remain at last--*/

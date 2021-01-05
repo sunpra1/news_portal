@@ -35,6 +35,7 @@ function App() {
         <AdminRoute exact path="/category/update/:categoryID" component={UpdateCategory} />
         {/* <AuthRoute exact path="/user/profile" component={Profile} /> */}
       </Router>
+      
     </UserProvider>
   );
 }

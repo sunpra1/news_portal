@@ -124,5 +124,5 @@ describe("Testing routes on category router", () => {
         expect(deleteCatRes.body._id).toBe(categoryId);
     });
 
-    
+
 });

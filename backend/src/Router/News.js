@@ -2,7 +2,7 @@ import Express from 'express';
 import { AdminUser, Auth, DeleteComment, IfAuth, PostNews, UpdateNews, UpdateComment, DeleteNews } from '../Middleware/Middleware.js';
 import { TakeCommentReactSchemaFillable, TakeCommentSchemaFillable, TakeNewsReactSchemaFillable, TakeNewsSchemaFillable } from '../Middleware/TakeFillables.js';
 import News from '../Model/News.js';
-import { addCommentData, addNewsData, getAllNewsParams, updateCategoryData, updateNewsData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, updateCommentData } from '../Utils/Validate.js';
+import { addCommentData, addNewsData, getAllNewsParams, updateCategoryData, updateNewsData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, updateCommentData, increaseNewsViewData } from '../Utils/Validate.js';
 import { newsImageUpload } from '../Utils/fileUpload.js';
 import Category from '../Model/Category.js';
 import Validator from 'validator';
@@ -372,7 +372,8 @@ newsRouter.route("/:newsID/comments/:commentID/toggleApprove")
 
 newsRouter.route("/:newsID/increaseView")
     .put(async (req, res, next) => {
-        if (Validator.isMongoId(req.params.newsID)) {
+        const validationErrors = increaseNewsViewData(req.params);
+        if (Object.keys(validationErrors).length == 0) {
             const news = await News.findById(req.params.newsID);
             if (news) {
                 news.views = news.views + 1;
@@ -384,9 +385,7 @@ newsRouter.route("/:newsID/increaseView")
                 next(error);
             }
         } else {
-            const error = new Error("Parameter news id, " + req.params.newsID + " is invalid");
-            error.statusCode = 400;
-            next(error);
+            res.status(400).send({ message: validationErrors });
         }
     });
 
@@ -401,8 +400,8 @@ newsRouter.route("/:newsID/reacts")
                     let react;
                     if (index >= 0) {
                         react = news.reacts[index];
-                        if (react.type == req.body.type) {
-                            react.delete();
+                        if (react.type == req.body.type.toUpperCase()) {
+                            react.remove();
                         } else {
                             react.type = req.body.type;
                         }
@@ -439,8 +438,8 @@ newsRouter.route("/:newsID/comments/:commentID/reacts")
                         let react;
                         if (index >= 0) {
                             react = comment.reacts[index];
-                            if (react.type == req.body.type) {
-                                react.delete();
+                            if (react.type == req.body.type.toUpperCase()) {
+                                react.remove();
                             } else {
                                 react.type = req.body.type;
                             }

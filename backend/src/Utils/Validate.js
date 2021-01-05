@@ -324,6 +324,15 @@ const toggleCommentApproveData = data => {
     return error;
 };
 
+const increaseNewsViewData = data => {
+    let error = {};
+
+    if (!Validator.isMongoId(data.newsID)) {
+        error.newsID = "Provide valid id for route parameter newsID";
+    }
+
+    return error;
+};
 
 const postCommentReactData = data => {
     let error = {};
@@ -403,4 +412,4 @@ const getSearchSuggestionsData = (data) => {
     return error;
 };
 
-export { addUserData, uniqueUserData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getAllNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData };
+export { addUserData, uniqueUserData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getAllNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, increaseNewsViewData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData };
