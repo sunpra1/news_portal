@@ -1,5 +1,4 @@
 import Jwt from 'jsonwebtoken';
-import Validator from 'validator';
 import News from '../Model/News.js';
 import User from '../Model/User.js';
 import { deleteCommentData, deleteNewsData, updateCommentData, updateNewsData } from '../Utils/Validate.js';

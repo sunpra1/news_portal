@@ -1,13 +1,16 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlusSquare, faTachometerAlt, faPlus, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faPlusSquare, faTachometerAlt, faPlus, faBars, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import Axios from 'axios';
-import { notify } from '../layout/Notification';
 import { BaseURL } from '../utils/constant';
 import Validator from 'validator';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
+import { simplifiedError } from '../utils/simplifiedError';
+import Dialog from '../layout/Dialog';
+import Loading from '../layout/Loading';
+import { toast } from 'react-toastify';
 
 class AddCategory extends Component {
     constructor(props) {
@@ -15,9 +18,20 @@ class AddCategory extends Component {
         this.state = {
             category: "",
             errors: {},
-            modalIsOpen: false
+            dialog: null,
+            isRequestComplete: true
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = ["category"];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     onChange = e => {
         const name = e.target.name;
@@ -31,6 +45,7 @@ class AddCategory extends Component {
         e.preventDefault();
         const token = localStorage.getItem("token");
         if (this.validate() && token) {
+            this.setState({ isRequestComplete: false });
             Axios({
                 method: "post",
                 data: { category: this.state.category },
@@ -38,24 +53,23 @@ class AddCategory extends Component {
                 headers: {
                     authorization: token
                 }
-            })
-                .then(result => {
-                    notify("success", "Category added successfully");
-                    this.setState({ category: "" });
-                    this.props.history.goBack();
-                })
-                .catch(e => {
-                    if (e.response && e.response.data.message) {
-                        if (Object.keys(e.response.data.message).length > 0) {
-                            this.setState({ errors: e.response.data.message });
-                        } else {
-                            notify("danger", e.response.data.message);
-                        }
+            }).then(result => {
+                this.setState({ category: "", isRequestComplete: true });
+                toast.success("Category added successfully");
+                this.props.history.goBack();
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        notify("danger", "Unable to add new category");
-                        console.log(e.message);
+                        errors.error = error.response.data.message;
                     }
-                });
+                } else {
+                    errors.error = "Invalid credentials provided";
+                }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            });
         }
     };
 
@@ -74,10 +88,13 @@ class AddCategory extends Component {
     };
 
     render() {
-        const { errors, category } = this.state;
-
+        const { errors, category, dialog, isRequestComplete } = this.state;
+        if (!isRequestComplete) return <Loading />;
         return (
             <>
+                {
+                    dialog
+                }
                 <Navbar />
                 <div className="container-fluid content-height">
                     <div className="row">

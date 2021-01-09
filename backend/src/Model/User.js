@@ -1,6 +1,7 @@
 import Mongoose from 'mongoose';
 import Validator from 'validator';
 import Jwt from 'jsonwebtoken';
+import Summary from './Summary.js';
 
 const userSchema = Mongoose.Schema({
     fullName: {
@@ -18,10 +19,7 @@ const userSchema = Mongoose.Schema({
     },
     address: {
         type: String,
-        trim: true,
-        required: function () {
-            return this.role == "OWNER";
-        }
+        trim: true
     },
     phone: {
         type: Number,
@@ -74,6 +72,78 @@ const userSchema = Mongoose.Schema({
 });
 
 userSchema.statics.fillable = ["fullName", "gender", "dob", "address", "phone", "password", "role"];
+
+userSchema.pre('save', async function (next) {
+
+    const user = this;
+    const summary = await Summary.findById(1);
+
+    switch (user.role) {
+        case "ADMIN": {
+            if (this.isNew) {
+                summary.adminUsers.push(user.id);
+                summary.totalUserCount = summary.totalUserCount + 1;
+            } else {
+                if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) < 0) summary.adminUsers.push(user.id);
+
+                if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
+            }
+            break;
+        }
+
+        case "AUTHOR": {
+            if (this.isNew) {
+                summary.authorUsers.push(user.id);
+                summary.totalUserCount = summary.totalUserCount + 1;
+            } else {
+                if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) < 0) summary.authorUsers.push(user.id);
+
+                if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
+            }
+            break;
+        }
+
+        case "USER": {
+            if (this.isNew) {
+                summary.totalUserCount = summary.totalUserCount + 1;
+            } else {
+                if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
+
+                if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
+            }
+            break;
+        }
+    }
+    await summary.save();
+    next();
+});
+
+userSchema.pre('remove', async function (next) {
+    const user = this;
+    const summary = await Summary.findById(1);
+
+    switch (user.type) {
+        case "ADMIN": {
+            summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
+            summary.totalUserCount = summary.totalUserCount - 1;
+            break;
+        }
+
+        case "AUTHOR": {
+            summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
+            summary.totalUserCount = summary.totalUserCount - 1;
+            break;
+        }
+
+        case "USER": {
+            summary.totalUserCount = summary.totalUserCount - 1;
+            break;
+        }
+    }
+    await summary.save();
+    next();
+});
+
 
 userSchema.methods.generateAuthToken = async function () {
     const user = this;

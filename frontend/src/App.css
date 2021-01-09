@@ -26,14 +26,11 @@ box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.30);
 }
 
 .dami-bg{
- background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
+ background-image: linear-gradient(-225deg, #3D4E81 0%, #5753C9 48%, #6E7FF3 100%);
 }
 
 .bg-grey{
-    background-image: linear-gradient(-225deg, #E3FDF5 0%, #FFE6FA 100%);
-    /* background-image: linear-gradient(to top, #cfd9df 0%, #e2ebf0 100%); */
-    /* background-image: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%); */
-    
+    background-image: linear-gradient(-225deg, #E3FDF5 0%, #FFE6FA 100%);    
 }
 
 a:hover{

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faNewspaper, faTachometerAlt, faEye, faCalendar, faBars, faShare, faComments, faSmile, faSurprise, faLaugh, faAngry, faSadTear, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faNewspaper, faTachometerAlt, faEye, faCalendar, faBars, faShare, faComments, faSmile, faSurprise, faLaugh, faAngry, faSadTear, faInfoCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { BaseURL } from '../utils/constant';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
@@ -12,16 +12,34 @@ import './news.css';
 import ReactHtmlParser from 'react-html-parser';
 import Comments from './Comments';
 import ImageSlider from './ImageSlider';
+import { simplifiedError } from '../utils/simplifiedError';
+import Dialog from '../layout/Dialog';
+import Loading from '../layout/Loading';
+import { UserContext } from '../context/UserContext';
+import { Redirect } from 'react-router-dom';
 
 export default class ViewNews extends Component {
+    static contextType = UserContext;
     constructor(props) {
         super(props);
         this.state = {
             news: null,
             errors: {},
-            showDescription: false
+            showDescription: false,
+            dialog: null,
+            isRequestComplete: false
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = ["phone", "password"];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     toggleDescriptionVisibility = () => {
         this.setState({ showDescription: !this.state.showDescription });
@@ -84,34 +102,43 @@ export default class ViewNews extends Component {
     componentDidMount = () => {
         const news = this.props.location.news;
         if (news) {
-            this.setState({ news });
+            this.setState({ news, isRequestComplete: true });
         } else {
             Axios({
                 method: 'get',
                 url: `${BaseURL}news/${this.props.match.params.newsID}`
             }).then(result => {
-                this.setState({ news: result.data });
-            }).catch(e => {
-                if (e.response && e.response.data.message) {
-                    if (Object.keys(e.response.data.message).length > 0) {
-                        this.setState({ errors: e.response.data.message });
+                this.setState({ news: result.data, isRequestComplete: true });
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: e.response.data.message } });
+                        errors.error = error.response.data.message;
                     }
                 } else {
-                    this.setState({ errors: { error: "Unable to fetch news details" } });
+                    errors.error = "Unable to fetch news details";
                 }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
         }
     };
 
     render() {
-        const { news, showDescription } = this.state;
+        const { news, showDescription, dialog, isRequestComplete } = this.state;
+        const { user } = this.context;
+        if (!isRequestComplete) return <Loading />;
+        if (user.role === "ADMIN" || (news && news.author._id === user._id)) return <Redirect to="/" />
+
         let newsReacts;
         if (news)
             newsReacts = this.getReactsOfNews();
         return (
             <>
+                {
+                    dialog
+                }
                 <Navbar />
                 <div className="container-fluid content-height">
                     <div className="row">

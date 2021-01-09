@@ -1,6 +1,7 @@
 import Mongoose from 'mongoose';
 import { commentSchema } from './Comment.js';
 import { newsReactSchema } from './NewsReact.js';
+import Summary from './Summary.js';
 
 const newsSchema = Mongoose.Schema({
     title: {
@@ -39,6 +40,22 @@ const newsSchema = Mongoose.Schema({
     reacts: [newsReactSchema]
 }, {
     timestamps: true
+});
+
+newsSchema.pre('save', async function (next) {
+    if (this.isNew) { 
+        const summary = await Summary.findById(1);
+        summary.newsCount = summary.newsCount + 1;
+        await summary.save();
+    }
+    next();
+});
+
+newsSchema.pre('remove', async function (next) {
+    const summary = await Summary.findById(1);
+    summary.newsCount = summary.newsCount - 1;
+    await summary.save();
+    next();
 });
 
 newsSchema.statics.fillable = ["title", "description", "category", "tags"];

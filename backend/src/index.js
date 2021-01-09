@@ -5,6 +5,7 @@ import userRouter from './Router/User.js';
 import categoryRouter from './Router/Category.js';
 import { getSimplifiedError } from './Utils/SimplifiedError.js';
 import newsRouter from './Router/News.js';
+import summaryRouter from './Router/Summary.js';
 
 const setupExpress = (hasConnectedToMongoose) => {
     if (hasConnectedToMongoose) {
@@ -18,6 +19,7 @@ const setupExpress = (hasConnectedToMongoose) => {
         app.use("/users", userRouter);
         app.use("/categories", categoryRouter);
         app.use("/news", newsRouter);
+        app.use("/summaries", summaryRouter);
 
         app.use("*", function (req, res, next) {
             let err = new Error("Route Not Found");

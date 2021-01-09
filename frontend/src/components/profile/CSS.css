@@ -1,14 +1,14 @@
 .profile-wrapper{
 position: relative;
-margin-top: 75px;
+margin-top: 9vh;
 }
 
 .profile-name{
-margin-top: 80px;
+margin-top: 9vh;
 }
 
 .profile-image{
 position: absolute;
-left: calc(50% - 75px);
+left: calc(50% - 9vh);
 top: -75px;
 }

@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
 import { Route, Redirect } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 
@@ -17,10 +17,16 @@ class AdminRoute extends Component {
                         ?
                         <Component {...props} />
                         :
-                        <Redirect to={{ pathname: "/login", state: { from: props.location } }} />
+                        (
+                            user
+                                ?
+                                <Redirect to={{ pathname: "/", state: { from: props.location } }} />
+                                :
+                                <Redirect to={{ pathname: "/login", state: { from: props.location } }} />
+                        )
                 }
             />
-        )
+        );
     }
 }
 

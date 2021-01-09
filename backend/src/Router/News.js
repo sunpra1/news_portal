@@ -2,7 +2,7 @@ import Express from 'express';
 import { AdminUser, Auth, DeleteComment, IfAuth, PostNews, UpdateNews, UpdateComment, DeleteNews } from '../Middleware/Middleware.js';
 import { TakeCommentReactSchemaFillable, TakeCommentSchemaFillable, TakeNewsReactSchemaFillable, TakeNewsSchemaFillable } from '../Middleware/TakeFillables.js';
 import News from '../Model/News.js';
-import { addCommentData, addNewsData, getAllNewsParams, updateCategoryData, updateNewsData, deleteCommentData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, updateCommentData, increaseNewsViewData } from '../Utils/Validate.js';
+import { addCommentData, addNewsData, getNewsParams, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, increaseNewsViewData } from '../Utils/Validate.js';
 import { newsImageUpload } from '../Utils/fileUpload.js';
 import Category from '../Model/Category.js';
 import Validator from 'validator';
@@ -76,7 +76,7 @@ newsRouter.route("/")
 newsRouter.route("/:page/:limit/:category/:sortOption/:search")
     .get(IfAuth, async (req, res, next) => {
         try {
-            const validationErrors = getAllNewsParams(req.params);
+            const validationErrors = getNewsParams(req.params);
             if (Object.keys(validationErrors).length == 0) {
                 const { category, sortOption, search } = req.params;
                 const limit = req.params.limit ? Number(req.params.limit) : 100;
@@ -92,33 +92,42 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
 
                     const cat = await Category.findById(category);
 
-                    await cat.populate({
-                        path: "news",
-                        match: {
-                            title: { $regex: ".*" + search + ".*", $options: "i" }
-                        },
-                        options: {
-                            sort,
-                            limit,
-                            skip
-                        }
-                    }).execPopulate();
-                    data = cat.news;
+                    if (cat) { 
+                        await cat.populate({
+                            path: "news",
+                            match: {
+                                title: { $regex: ".*" + search + ".*", $options: "i" }
+                            },
+                            options: {
+                                sort,
+                                limit,
+                                skip
+                            }
+                        }).execPopulate();
+                        data = cat.news;
+                    } else {
+                        data = [];
+                    }
                 }
 
                 else if (category !== "null" && search !== "null") {
                     const cat = await Category.findById(category);
-                    await cat.populate({
-                        path: "news",
-                        match: {
-                            title: { $regex: ".*" + search + ".*", $options: "i" }
-                        },
-                        options: {
-                            limit,
-                            skip
-                        }
-                    }).execPopulate();
-                    data = cat.news;
+                    if (cat) {
+                        await cat.populate({
+                            path: "news",
+                            match: {
+                                title: { $regex: ".*" + search + ".*", $options: "i" }
+                            },
+                            options: {
+                                limit,
+                                skip
+                            }
+                        }).execPopulate();
+
+                        data = cat.news;
+                    } else { 
+                        data = [];
+                    }
                 }
 
                 else if (category !== "null" && sortOption !== "null") {
@@ -150,14 +159,18 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
 
                 else if (category !== "null") {
                     const cat = await Category.findById(category);
-                    await cat.populate({
-                        path: "news",
-                        options: {
-                            limit,
-                            skip
-                        }
-                    }).execPopulate();
-                    data = cat.news;
+                    if (cat) {
+                        await cat.populate({
+                            path: "news",
+                            options: {
+                                limit,
+                                skip
+                            }
+                        }).execPopulate();
+                        data = cat.news;
+                    } else { 
+                        data = [];
+                    }
                 }
 
                 else if (search !== "null") {
@@ -179,6 +192,162 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                     if (!(req.user && req.user.role == "ADMIN")) {
                         item.comments = item.comments.filter(comment => comment.approved);
                     }
+                    await item.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
+                    return item;
+                }));
+                res.send(data);
+
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
+    });
+
+newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
+    .get(Auth, async (req, res, next) => {
+        try {
+            const validationErrors = getNewsParams(req.params);
+            if (Object.keys(validationErrors).length == 0) {
+                const { category, sortOption, search } = req.params;
+                const limit = req.params.limit ? Number(req.params.limit) : 100;
+                const page = req.params.page ? Number(req.params.page) : 1;
+
+                let data = null;
+                const skip = (page - 1) * limit;
+                const user = req.user;
+                if (category !== "null" && search !== "null" && sortOption !== "null") {
+                    let sort = {};
+                    sortOption == "new" ? sort.createdAt = -1 : "";
+                    sortOption == "old" ? sort.createdAt = 1 : "";
+                    sortOption == "popular" ? sort.views = -1 : "";
+
+                    await user.populate({
+                        path: "news",
+                        match: {
+                            title: { $regex: ".*" + search + ".*", $options: "i" },
+                            category
+                        },
+                        options: {
+                            sort,
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = user.news;
+                }
+
+                else if (category !== "null" && search !== "null") {
+                    await user.populate({
+                        path: "news",
+                        match: {
+                            title: { $regex: ".*" + search + ".*", $options: "i" },
+                            category
+                        },
+                        options: {
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = user.news;
+                }
+
+                else if (category !== "null" && sortOption !== "null") {
+                    let sort = {};
+                    sortOption == "new" ? sort.createdAt = -1 : "";
+                    sortOption == "old" ? sort.createdAt = 1 : "";
+                    sortOption == "popular" ? sort.views = -1 : "";
+
+                    await user.populate({
+                        path: "news",
+                        match: {
+                            category
+                        },
+                        options: {
+                            sort,
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = user.news;
+                }
+
+                else if (search !== "null" && sortOption !== "null") {
+                    let sort = {};
+                    sortOption == "new" ? sort.createdAt = -1 : "";
+                    sortOption == "old" ? sort.createdAt = 1 : "";
+                    sortOption == "popular" ? sort.views = -1 : "";
+
+                    await user.populate({
+                        path: "news",
+                        match: {
+                            title: { $regex: ".*" + search + ".*", $options: "i" }
+                        },
+                        options: {
+                            sort,
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = user.news;
+                }
+
+                else if (category !== "null") {
+                    await user.populate({
+                        path: "news",
+                        match: {
+                            category
+                        },
+                        options: {
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = user.news;
+                }
+
+                else if (search !== "null") {
+                    await user.populate({
+                        path: "news",
+                        match: {
+                            title: { $regex: ".*" + search + ".*", $options: "i" }
+                        },
+                        options: {
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = user.news;
+                }
+
+                else if (sortOption !== "null") {
+                    let sort = {};
+                    sortOption == "new" ? sort.createdAt = -1 : "";
+                    sortOption == "old" ? sort.createdAt = 1 : "";
+                    sortOption == "popular" ? sort.views = -1 : "";
+                    await user.populate({
+                        path: "news",
+                        options: {
+                            sort,
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = user.news;
+                }
+
+                else {
+                    await user.populate({
+                        path: "news",
+                        options: {
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = user.news;
+                }
+                data = await Promise.all(data.map(async item => {
                     await item.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
                     return item;
                 }));
@@ -347,9 +516,6 @@ newsRouter.route("/:newsID/comments/:commentID")
         }
     });
 
-
-/*--Tested--*/
-
 newsRouter.route("/:newsID/comments/:commentID/toggleApprove")
     .put(AdminUser, async (req, res, next) => {
         try {
@@ -468,19 +634,55 @@ newsRouter.route("/:newsID/comments/:commentID/reacts")
         }
     });
 
-newsRouter.route("/:period/:isCategoryWise/:limit/:threshold")
+newsRouter.route("/:period/:isCategoryWise/:threshold")
     .get(IfAuth, async (req, res, next) => {
         try {
             const validationErrors = getPopularNewsData(req.params);
             if (Object.keys(validationErrors).length == 0) {
-                const { isCategoryWise, limit, threshold } = req.params;
+                const { isCategoryWise, threshold } = req.params;
                 const period = req.params.period.toUpperCase();
-
                 const todayDate = new Date();
-                const lessThen = period == "PREVIOUS_MONTH" ? todayDate.setMonth(todayDate.getMonth() - 1) : (period == "PREVIOUS_WEEK" ? todayDate.setDate(todayDate.getDate() - 7) : todayDate.setDate(todayDate.getDate() - 1));
+                
+                const lessThen = new Date();
+                switch (period) { 
+                    case "PREVIOUS_MONTH": {
+                        lessThen.setMonth(todayDate.getMonth() - 1)
+                        break;
+                    }
+                        
+                    case "PREVIOUS_WEEK": {
+                        lessThen.setDate(todayDate.getDate() - 7)
+                        break;
+                    }
+                        
+                    default: {
+                        lessThen.setDate(todayDate.getDate() + 1)
+                        break;
+                    }
+                }
 
-                const greaterThen = period == "PREVIOUS_MONTH" ? todayDate.setMonth(todayDate.getMonth() - 2) : (period == "PREVIOUS_WEEK" ? todayDate.setDate(todayDate.getDate() - 14) : (period == "THIS_MONTH" ? todayDate.setMonth(todayDate.getMonth() - 1) : todayDate.setDate(todayDate.getDate() - 7)));
+                const greaterThen = new Date();
+                switch (period) {
+                    case "PREVIOUS_MONTH": {
+                        greaterThen.setMonth(todayDate.getMonth() - 2);
+                        break;
+                    }
 
+                    case "PREVIOUS_WEEK": {
+                        greaterThen.setDate(todayDate.getDate() - 14)
+                        break;
+                    }
+
+                    case "THIS_MONTH": {
+                        greaterThen.setMonth(todayDate.getMonth() - 1)
+                        break;
+                    }
+
+                    default: {
+                        greaterThen.setDate(todayDate.getDate() - 7)
+                        break;
+                    }
+                }
                 if (isCategoryWise == "true" && isCategoryWise != "false") {
                     let categories = await Category.find().populate({
                         path: "news",
@@ -495,9 +697,8 @@ newsRouter.route("/:period/:isCategoryWise/:limit/:threshold")
                         },
                         options: {
                             sort: {
-                                createdAt: -1
+                                views: -1
                             },
-                            limit: 0,
                             skip: 0
                         }
                     });
@@ -509,7 +710,6 @@ newsRouter.route("/:period/:isCategoryWise/:limit/:threshold")
                                 return singleNews;
                             }));
                         }
-
                         return await category.populate("news.author").populate("news.category").populate("news.comments.user").populate("news.comments.reacts").execPopulate();
                     }));
                     res.send(categories);
@@ -522,7 +722,7 @@ newsRouter.route("/:period/:isCategoryWise/:limit/:threshold")
                         views: {
                             $gte: Number(threshold)
                         }
-                    }).limit(Number(limit)).sort({ createdAt: -1 });
+                    }).sort({ views: -1 });
 
                     news = await Promise.all(news.map(async singleNews => {
                         if (!(req.user && req.user.role == "ADMIN")) {
@@ -550,11 +750,37 @@ newsRouter.route("/search_suggestions/:searchTerm/:limit")
             } else {
                 res.status(400).send({ message: validationErrors });
             }
-
         } catch (error) {
             next(error);
         }
+    });
 
+
+newsRouter.route("/my/search_suggestions/:searchTerm/:limit")
+    .get(Auth, async (req, res, next) => {
+        try {
+            const validationErrors = getSearchSuggestionsData(req.params);
+            if (Object.keys(validationErrors).length == 0) {
+                const user = req.user;
+                const search = req.params.searchTerm;
+                const limit = req.params.limit;
+                await user.populate({
+                    path: "news",
+                    select: "title",
+                    match: {
+                        title: { $regex: ".*" + search + ".*", $options: "i" }
+                    },
+                    options: {
+                        limit
+                    }
+                }).execPopulate();
+                res.send(user.news);
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
     });
 
 export default newsRouter;

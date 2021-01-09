@@ -2,13 +2,16 @@ import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { BaseURL } from '../utils/constant';
-import { faAngleLeft, faAngleRight, faFilter, faNewspaper, faPlus, faSearch, faTachometerAlt, faThList, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
+import { faAngleLeft, faAngleRight, faFilter, faNewspaper, faPlus, faSearch, faTachometerAlt, faThList, faTimesCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import NewsList from './NewsList';
 import Sidebar from '../layout/Sidebar';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Validator from 'validator';
+import { simplifiedError } from '../utils/simplifiedError';
+import Loading from '../layout/Loading';
+import Dialog from '../layout/Dialog';
 
 export default class News extends Component {
     constructor(props) {
@@ -23,38 +26,55 @@ export default class News extends Component {
             categories: [],
             news: [],
             searchSuggestions: [],
-            errors: {}
+            viewMyNewsOnly: false,
+            errors: {},
+            dialog: null,
+            isRequestComplete: false
         };
     }
 
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = [];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
+
     onChangeHandler = (e) => {
         const name = e.target.name;
-        const value = e.target.value;
-        if (name === "limit" && value > 0) return;
+        let value = e.target.value;
+        if (name === "viewMyNewsOnly") value = value !== "true";
+        if (name === "limit" && value && value <= 0) return;
         this.setState({ [name]: value }, () => {
-            if (name === "search" && Validator.trim(value).length > 5) this.getSearchSuggestions();
+            if (name === "search" && Validator.trim(value).length > 5) this.setState({ isRequestComplete: false }, () => this.getSearchSuggestions());
+            if (name === "category" || name === "sortOption" || name === "viewMyNewsOnly") this.setState({ isRequestComplete: false }, () => this.getNews());
         });
     };
 
-    onRouteParameterSetClicked = () => {
-        this.getNews();
-    };
-
     onClearCategoryFilterBtnPressed = () => {
-        this.setState({ category: "" });
+        this.setState({ category: "", isRequestComplete: false }, () => {
+            this.getNews();
+        });
     };
 
     onClearSortFilterBtnPressed = () => {
-        this.setState({ sortOption: "" });
+        this.setState({ sortOption: "", isRequestComplete: false }, () => {
+            this.getNews();
+        });
     };
 
     onClearSearchBtnPressed = () => {
-        this.setState({ search: "", searchSuggestions: [] });
+        this.setState({ search: "", searchSuggestions: [], isRequestComplete: false }, () => {
+            this.getNews();
+        });
     };
 
     onNextPageBtnClicked = () => {
         const { page } = this.state;
-        this.setState({ page: page + 1 }, () => {
+        this.setState({ page: page + 1, isRequestComplete: false }, () => {
             this.getNews();
         });
     };
@@ -62,7 +82,7 @@ export default class News extends Component {
     onPreviousPageBtnClicked = () => {
         const { page } = this.state;
         if (page > 1) {
-            this.setState({ page: page - 1 }, () => {
+            this.setState({ page: page - 1, isRequestComplete: false }, () => {
                 this.getNews();
             });
         }
@@ -73,23 +93,25 @@ export default class News extends Component {
     };
 
     getSearchSuggestions = () => {
-        const { search } = this.state;
+        const { search, viewMyNewsOnly } = this.state;
         Axios({
             method: 'get',
-            url: `${BaseURL}news/search_suggestions/${search}/6`
+            url: `${BaseURL}news${viewMyNewsOnly ? "/my" : ""}/search_suggestions/${search}/6`
         }).then(result => {
             const searchSuggestions = result.data;
             this.setState({ searchSuggestions });
-        }).catch(e => {
-            if (e.response && e.response.data.message) {
-                if (Object.keys(e.response.data.message).length > 0) {
-                    this.setState({ errors: e.response.data.message });
+        }).catch(error => {
+            let { errors } = this.state;
+            if (error.response && error.response.data.message) {
+                if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    errors = error.response.data.message;
                 } else {
-                    this.setState({ errors: { error: e.response.data.message } });
+                    errors.error = error.response.data.message;
                 }
             } else {
-                this.setState({ errors: { error: "Unable to fetch search suggestions" } });
+                errors.error = "Unable to get search suggestions";
             }
+            this.setState({ errors }, () => this.setUpErrorDialog());
         });
     };
 
@@ -97,29 +119,31 @@ export default class News extends Component {
         const token = localStorage.getItem("token");
         if (token) {
             const { page, limit } = this.state;
-            let { category, search, sortOption } = this.state;
+            let { category, search, sortOption, viewMyNewsOnly } = this.state;
             category = category ? category : "null";
             search = search ? search : "null";
             sortOption = sortOption ? sortOption : "null";
             Axios({
                 method: 'get',
-                url: `${BaseURL}news/${page}/${limit}/${category}/${sortOption}/${search}`,
+                url: `${BaseURL}news${viewMyNewsOnly ? "/my": ""}/${page}/${limit}/${category}/${sortOption}/${search}`,
                 headers: {
                     authorization: token
                 }
             }).then(result => {
                 const news = result.data;
-                this.setState({ news });
-            }).catch(e => {
-                if (e.response && e.response.data.message) {
-                    if (Object.keys(e.response.data.message).length > 0) {
-                        this.setState({ errors: e.response.data.message });
+                this.setState({ news, isRequestComplete: true });
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: e.response.data.message } });
+                        errors.error = error.response.data.message;
                     }
                 } else {
-                    this.setState({ errors: { error: "Unable to fetch news categories" } });
+                    errors.error = "Unable to fetch news";
                 }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
         }
     };
@@ -129,17 +153,19 @@ export default class News extends Component {
             method: 'get',
             url: `${BaseURL}categories`
         }).then(result => {
-            this.setState({ categories: result.data });
-        }).catch(e => {
-            if (e.response && e.response.data.message) {
-                if (Object.keys(e.response.data.message).length > 0) {
-                    this.setState({ errors: e.response.data.message });
+            this.setState({ categories: result.data, isRequestComplete: true });
+        }).catch(error => {
+            let { errors } = this.state;
+            if (error.response && error.response.data.message) {
+                if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    errors = error.response.data.message;
                 } else {
-                    this.setState({ errors: { error: e.response.data.message } });
+                    errors.error = error.response.data.message;
                 }
             } else {
-                this.setState({ errors: { error: "Unable to fetch news categories" } });
+                errors.error = "Unable to fetch news categories";
             }
+            this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
         });
     };
 
@@ -155,10 +181,13 @@ export default class News extends Component {
     };
 
     render() {
-        const { news, categories, category, search, sortOption, page, limit, searchSuggestions } = this.state;
-
+        const { news, categories, category, search, sortOption, page, limit, viewMyNewsOnly, searchSuggestions, dialog, isRequestComplete } = this.state;
+        if (!isRequestComplete) return <Loading />;
         return (
             <>
+                {
+                    dialog
+                }
                 <Navbar />
                 <div className="container-fluid content-height">
                     <div className="row">
@@ -179,6 +208,9 @@ export default class News extends Component {
 
                                             <div className="col-md col-sm-12 p-0 d-flex my-1">
                                                 <div className="input-group">
+                                                    <div className="input-group-prepend">
+                                                        <button className="btn btn-info btn-sm rounded-0" value="search_btn"><FontAwesomeIcon icon={faFilter} /></button>
+                                                    </div>
                                                     <select name="category" value={category} onChange={this.onChangeHandler} className="form-control rounded-0">
                                                         <option value="" key="0" disabled>SELECT CATEGORY</option>
                                                         {
@@ -196,7 +228,6 @@ export default class News extends Component {
                                                             </div>
                                                         )
                                                     }
-                                                    <button onClick={this.onRouteParameterSetClicked} className="btn btn-info rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faFilter} /></button>
                                                 </div>
                                             </div>
                                             <div className="col-md col-sm-12 p-0 d-flex justify-content-center my-1">
@@ -209,24 +240,27 @@ export default class News extends Component {
                                                             </div>
                                                         )
                                                     }
-                                                    <button onClick={this.onRouteParameterSetClicked} className="btn btn-info rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faSearch} /></button>
-                                                </div>
+                                                    <button onClick={this.getNews} className="btn btn-info rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faSearch} /></button>
 
-                                                {
-                                                    searchSuggestions.length > 0 && (<div className="search-suggestions border -danger">
-                                                        <ul className="list-group rounded-0 bg-light">
-                                                            {
-                                                                searchSuggestions.map(suggestion => {
-                                                                    return <li onClick={() => this.handleOnSearchSuggestionClicked(suggestion.title)} className="list-group-item p-2 rounded-0" key={suggestion._id}>{suggestion.title}</li>;
-                                                                })
-                                                            }
-                                                        </ul>
-                                                    </div>
-                                                    )
-                                                }
+                                                    {
+                                                        searchSuggestions.length > 0 && (<div className="search-suggestions mt-2">
+                                                            <ul className="list-group rounded-0 bg-light border border-danger">
+                                                                {
+                                                                    searchSuggestions.map(suggestion => {
+                                                                        return <li onClick={() => this.handleOnSearchSuggestionClicked(suggestion.title)} className="list-group-item p-2 rounded-0" key={suggestion._id}>{suggestion.title}</li>;
+                                                                    })
+                                                                }
+                                                            </ul>
+                                                        </div>
+                                                        )
+                                                    }
+                                                </div>
                                             </div>
                                             <div className="col-md col-sm-12 p-0 d-flex justify-content-end my-1">
                                                 <div className="input-group">
+                                                    <div className="input-group-prepend">
+                                                        <button className="btn btn-info btn-sm rounded-0" value="search_btn"><FontAwesomeIcon icon={faFilter} /></button>
+                                                    </div>
                                                     <select name="sortOption" value={sortOption} onChange={this.onChangeHandler} className="form-control rounded-0">
                                                         <option value="" key="0" disabled>SORT OPTIONS</option>
                                                         <option value="old" key="1">OLD</option>
@@ -241,7 +275,7 @@ export default class News extends Component {
                                                             </div>
                                                         )
                                                     }
-                                                    <button onClick={this.onRouteParameterSetClicked} className="btn btn-info rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faFilter} /></button>
+
                                                 </div>
                                             </div>
                                         </div>
@@ -250,9 +284,15 @@ export default class News extends Component {
                                             <div className="row">
                                                 <div className="col-md col-sm-12">
                                                     <div className="input-group">
-                                                        <label className="my-1 mr-2" htmlFor="">NEWS PER PAGE</label>
+                                                        <label className="my-1 mr-2 text-info" htmlFor="limit">NEWS PER PAGE</label>
                                                         <input type="number" name="limit" value={limit} onChange={this.onChangeHandler} placeholder="LIMIT" className="form-control-sm rounded-0 border" style={{ width: "80px" }} />
-                                                        <button onClick={this.onRouteParameterSetClicked} className="btn btn-info btn-sm rounded-0 ml-1" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faThList} /></button>
+                                                        <button onClick={this.getNews} className="btn btn-info btn-sm rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faThList} /></button>
+                                                    </div>
+                                                </div>
+                                                <div className="col-md col-sm-12">
+                                                    <div className="input-group justify-content-center">
+                                                        <label className="my-1 mr-2 text-info" htmlFor="viewMyNewsOnly">MY NEWS ONLY</label>
+                                                        <input type="checkbox" name="viewMyNewsOnly" value={viewMyNewsOnly} checked={viewMyNewsOnly} onChange={this.onChangeHandler} className="form-control-sm rounded-0 cursor-pointer" style={{ width: "20px" }} />
                                                     </div>
                                                 </div>
                                                 <div className="col-md col-sm-12">

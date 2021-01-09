@@ -1,6 +1,7 @@
 import React, { Component, createContext } from 'react';
 import Axios from 'axios';
 import { BaseURL } from '../utils/constant';
+import Loading from '../layout/Loading';
 
 export const UserContext = createContext();
 
@@ -8,7 +9,8 @@ export default class UserProvider extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      user: null
+      user: null,
+      isDataReady: false
     };
   }
 
@@ -26,22 +28,26 @@ export default class UserProvider extends Component {
           authorization: token
         }
       }).then(result => {
-        this.setState({ user: result.data });
+        this.setState({ user: result.data, isDataReady: true });
       }).catch(e => {
         if (e.response && e.response.data.message) {
           if (e.response.status && e.response.status === 401) {
             localStorage.removeItem("token");
-            this.setState({ user: null });
+            this.setState({ user: null, isDataReady: true });
           }
         }
       });
+    } else {
+      this.setState({ isDataReady: true})
     }
   };
 
   render() {
     return (
       <UserContext.Provider value={{ user: this.state.user, setUser: this.setUser }}>
-        {this.props.children}
+        {
+          this.state.isDataReady ? this.props.children : <Loading /> 
+        }
       </UserContext.Provider>
     );
   }

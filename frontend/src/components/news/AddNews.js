@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faImage, faPlusSquare, faTimes, faNewspaper, faTachometerAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { notify } from '../layout/Notification';
+import { faImage, faPlusSquare, faTimes, faNewspaper, faTachometerAlt, faPlus, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { BaseURL } from '../utils/constant';
 import ReactQuill from 'react-quill';
 import './wyswyg.css';
@@ -11,6 +10,10 @@ import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import Validator from 'validator';
+import { simplifiedError } from '../utils/simplifiedError';
+import Dialog from '../layout/Dialog';
+import { toast } from 'react-toastify';
+import Loading from '../layout/Loading';
 
 export default class AddNews extends Component {
     constructor(props) {
@@ -21,9 +24,21 @@ export default class AddNews extends Component {
             description: "",
             images: [],
             category: "0",
-            errors: {}
+            errors: {},
+            isRequestComplete: false,
+            dialog: null
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = ["title", "description", "images", "category"];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     modules = {
         toolbar: [
@@ -179,6 +194,7 @@ export default class AddNews extends Component {
         const token = localStorage.getItem("token");
         let stateValues = this.state;
         if (this.validate(stateValues) && token) {
+            this.setState({ isRequestComplete: false });
             const data = new FormData();
             data.append("title", stateValues.title);
             data.append("description", stateValues.description);
@@ -196,22 +212,27 @@ export default class AddNews extends Component {
                     authorization: token
                 }
             }).then(result => {
-                if (result.data) {
-                    notify("success", "News added successfully");
-                    this.setState({
-                        title: "",
-                        description: "",
-                        images: [],
-                        category: "0",
-                        errors: {}
-                    });
-                    this.props.history.goBack();
-                }
-            }).catch(e => {
-                if (e.response && e.response.data.message) {
-                    notify("danger", e.response.data.message);
+                this.setState({
+                    isRequestComplete: true,
+                    title: "",
+                    description: "",
+                    images: [],
+                    category: "0",
+                    errors: {}
+                });
+                toast.success("News added successfully");
+                this.props.history.goBack();
+            }).catch(error => {
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        this.setState({ errors: error.response.data.message, isRequestComplete: true }, () => this.setUpErrorDialog());
+                    } else {
+                        toast.error(error.response.data.message);
+                        this.setState({ isRequestComplete: true });
+                    }
                 } else {
-                    notify("danger", "Unable to add news");
+                    toast.error("Unable to add news");
+                    this.setState({ isRequestComplete: true });
                 }
             });
         }
@@ -243,25 +264,30 @@ export default class AddNews extends Component {
             method: 'get',
             url: `${BaseURL}categories`
         }).then(result => {
-            console.log(result.data);
-            this.setState({ categories: result.data });
-        }).catch(e => {
-            if (e.response && e.response.data.message) {
-                if (Object.keys(e.response.data.message).length > 0) {
-                    this.setState({ errors: e.response.data.message });
+            this.setState({ categories: result.data, isRequestComplete: true });
+        }).catch(error => {
+            let { errors } = this.state;
+            if (error.response && error.response.data.message) {
+                if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    errors = error.response.data.message;
                 } else {
-                    this.setState({ errors: { error: e.response.data.message } });
+                    errors.error = error.response.data.message;
                 }
             } else {
-                this.setState({ errors: { error: "Unable to fetch news categories" } });
+                errors.error = "Unable to fetch news categories";
             }
+            this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
         });
     };
 
     render() {
-        const { errors, images, categories, title, category, description } = this.state;
+        const { errors, images, categories, title, category, description, isRequestComplete, dialog } = this.state;
+        if (!isRequestComplete) return <Loading />;
         return (
             <>
+                {
+                    dialog
+                }
                 <Navbar />
                 <div className="container-fluid content-height">
                     <div className="row">

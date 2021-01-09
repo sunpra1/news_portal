@@ -21,15 +21,6 @@ class Dialog extends Component {
         };
     }
 
-    // static getDerivedStateFromProps = (props, state) => {
-    //     if (!state.modalIsOpen) {
-    //         return {
-    //             modalIsOpen: true
-    //         };
-    //     }
-    //     return null;
-    // };
-
     openModal = () => {
         this.setState({ modalIsOpen: true });
     };
@@ -60,15 +51,15 @@ class Dialog extends Component {
     };
 
     render() {
-        const { icon, headerText, bodyText, positiveButton, negativeButton } = this.props;
+        const { type, icon, headerText, bodyText, positiveButton, negativeButton } = this.props;
         return (
             <Modal
                 isOpen={this.state.modalIsOpen}
                 onRequestClose={this.closeModal}
                 style={this.customStyles}
                 onAfterClose={this.onAfterClose}>
-                <div className="col mx-auto card rounded-0 p-0">
-                    <div className="card-header bg-info text-light rounded-0">
+                <div className="col mx-auto card rounded-0 p-0" style={{minWidth: "300px"}}>
+                    <div className={`card-header text-light rounded-0 ${type ? `bg-${type}` : "bg-info"}`}>
                         <h6 className="modal-title" id="exampleModalLabel">
                             <span className="mr-2">{icon ? icon : ""}</span>
                             {headerText ? headerText.toUpperCase() : "DIALOG"}
@@ -84,9 +75,9 @@ class Dialog extends Component {
                         {
                             (positiveButton && positiveButton.text)
                                 ?
-                                <button onClick={this.onPositiveButtonClick} className="btn btn-success btn-sm rounded-0"> {positiveButton.text} </button>
+                                <button onClick={this.onPositiveButtonClick} className="btn btn-success btn-sm rounded-0" style={{ minWidth: "100px" }}> {positiveButton.text} </button>
                                 :
-                                <button onClick={this.onPositiveButtonClick} className="btn btn-success btn-sm rounded-0">OK</button>
+                                <button onClick={this.onPositiveButtonClick} className="btn btn-success btn-sm rounded-0" style={{ minWidth: "100px" }}>OK</button>
                         }
                     </div>
                 </div>

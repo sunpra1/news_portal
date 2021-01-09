@@ -1,8 +1,8 @@
 import Express from 'express';
 import User from '../Model/User.js';
 import Bcrypt from 'bcryptjs';
-import { addUserData, uniqueUserData, loginData, updateUserData } from '../Utils/Validate.js';
-import { Auth } from '../Middleware/Middleware.js';
+import { addUserData, uniqueUserData, loginData, updateUserData, updateUserRoleData } from '../Utils/Validate.js';
+import { AdminUser, Auth } from '../Middleware/Middleware.js';
 import { userImageUpload } from '../Utils/fileUpload.js';
 import FS from 'fs';
 import Path from 'path';
@@ -41,6 +41,35 @@ userRouter.route("/validate-unique-user")
                 const user = await User.findOne({ phone: req.body.phone });
                 const isUnique = user ? false : true;
                 res.send({ isUnique, user });
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (e) {
+            next(e);
+        }
+    });
+
+userRouter.route("/update-role")
+    .put(AdminUser, async (req, res, next) => {
+        try {
+            const validationErrors = updateUserRoleData(req.body);
+            if (Object.keys(validationErrors).length == 0) {
+                const user = await User.findById(req.body.id);
+                if (user) {
+                    if (req.user.id.toString() != user.id.toString()) {
+                        user.role = req.body.role.toUpperCase();
+                        await user.save();
+                        res.send(user);
+                    } else {
+                        const error = new Error("Updation of own role is prohibited");
+                        error.statusCode = 400;
+                        next(error);
+                    }
+                } else {
+                    const error = new Error(`User with id: ${req.params.id} not found`);
+                    error.statusCode = 400;
+                    next(error);
+                }
             } else {
                 res.status(400).send({ message: validationErrors });
             }
@@ -100,7 +129,7 @@ userRouter.route("/profile")
                         delete req.body.email;
                     }
                     const validationErrors = updateUserData(req.body);
-                    if (!validationErrors) {
+                    if (Object.keys(validationErrors).length == 0) {
                         if (req.body.password)
                             req.body.password = await Bcrypt.hash(req.body.password, 8);
 

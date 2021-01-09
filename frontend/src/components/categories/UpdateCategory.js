@@ -1,22 +1,37 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTachometerAlt, faBars, faPenAlt } from '@fortawesome/free-solid-svg-icons';
+import { faTachometerAlt, faBars, faPenAlt, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import Axios from 'axios';
-import { notify } from '../layout/Notification';
+import { toast } from 'react-toastify';
 import { BaseURL } from '../utils/constant';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import Validator from 'validator';
+import { simplifiedError } from '../utils/simplifiedError';
+import Dialog from '../layout/Dialog';
+import Loading from '../layout/Loading';
 
 class UpdateCategory extends Component {
     constructor(props) {
         super(props);
         this.state = {
             category: "",
-            errors: {}
+            errors: {},
+            dialog: null,
+            isRequestComplete: false
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = ["category"];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     onChange = e => {
         const name = e.target.name;
@@ -43,6 +58,7 @@ class UpdateCategory extends Component {
         e.preventDefault();
         const token = localStorage.getItem("token");
         if (this.validate() && token) {
+            this.setState({ isRequestComplete: false });
             Axios({
                 method: "put",
                 data: { category: this.state.category },
@@ -50,19 +66,23 @@ class UpdateCategory extends Component {
                 headers: {
                     authorization: token
                 }
-            })
-                .then(result => {
-                    notify("success", "Category updated successfully");
-                    this.setState({ category: result.data.category });
-                    this.props.history.goBack();
-                })
-                .catch(e => {
-                    if (e.response && e.response.data.message) {
-                        this.setState({ errors: e.response.data.message });
+            }).then(result => {
+                this.setState({ category: result.data.category, isRequestComplete: true });
+                toast.success("Category updated successfully");
+                this.props.history.goBack();
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        notify("danger", "Unable to update your category");
+                        errors.error = error.response.data.message;
                     }
-                });
+                } else {
+                    errors.error = "Updation of category failed";
+                }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            });
         }
     };
 
@@ -79,34 +99,37 @@ class UpdateCategory extends Component {
     componentDidMount = () => {
         let category = this.props.location.category;
         if (category) {
-            this.setState({ category: category.category });
+            this.setState({ category: category.category, isRequestComplete: true });
         } else {
             Axios({
                 method: "get",
                 url: `${BaseURL}categories/${this.props.match.params.categoryID}`
-            })
-                .then(result => {
-                    this.setState({ category: result.data.category });
-                })
-                .catch(e => {
-                    if (e.response && e.response.data.message) {
-                        if (Object.keys(e.response.data.message).length > 0) {
-                            this.setState({ errors: e.response.data.message });
-                        } else {
-                            this.setState({ errors: { error: e.response.data.message } });
-                        }
+            }).then(result => {
+                this.setState({ category: result.data.category, isRequestComplete: true });
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: "Unable to get category details" } });
+                        errors.error = error.response.data.message;
                     }
-                });
+                } else {
+                    errors.error = "Unable to get category details";
+                }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            });
         }
     };
 
     render() {
-        const { errors, category } = this.state;
-
+        const { errors, category, isRequestComplete, dialog } = this.state;
+        if (!isRequestComplete) return <Loading />;
         return (
             <>
+                {
+                    dialog
+                }
                 <Navbar />
                 <div className="container-fluid content-height">
                     <div className="row">

@@ -2,24 +2,38 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendar, faThumbsUp, faThumbsDown, faCheckCircle, faTimesCircle, faTrash, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import User from './user.png';
 import DateFormat from 'dateformat';
-import { notify } from '../layout/Notification';
+import { toast } from 'react-toastify';
 import Axios from 'axios';
 import { BaseURL } from '../utils/constant';
 import React, { Component } from 'react';
+import { simplifiedError } from '../utils/simplifiedError';
 import Dialog from '../layout/Dialog';
+import Loading from '../layout/Loading';
 
 export default class Comments extends Component {
     constructor(props) {
         super(props);
         this.state = {
             errors: {},
-            dialog: null
+            dialog: null,
+            isRequestComplete: true
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = [];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     onToggleCommentVisibilityClicked = (comment, position) => {
         const token = localStorage.getItem("token");
         if (token) {
+            this.setState({ isRequestComplete: false });
             Axios({
                 method: 'put',
                 url: `${BaseURL}news/${this.props.newsID}/comments/${comment._id}/toggleApprove`,
@@ -27,18 +41,21 @@ export default class Comments extends Component {
                     authorization: token
                 }
             }).then(result => {
+                this.setState({ isRequestComplete: true });
                 this.props.toggleCommentApproveState(result.data, position);
-                notify("success", `Comment has been ${result.data.approved ? "published" : "unpublised"} successfully`);
-            }).catch(e => {
-                if (e.response && e.response.data.message) {
-                    if (Object.keys(e.response.data.message).length > 0) {
-                        this.setState({ errors: e.response.data.message });
+                toast.success(`Comment has been ${result.data.approved ? "published" : "unpublised"} successfully`);
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: e.response.data.message } });
+                        errors.error = error.response.data.message;
                     }
                 } else {
-                    this.setState({ errors: { error: "Unable to update comment approvae status" } });
+                    errors.error = "Unable to update comment approved status";
                 }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
         }
     };
@@ -51,6 +68,7 @@ export default class Comments extends Component {
     deleteHandler = (comment, position) => {
         const token = localStorage.getItem("token");
         if (token) {
+            this.setState({ isRequestComplete: false });
             Axios({
                 method: 'delete',
                 url: `${BaseURL}news/${this.props.newsID}/comments/${comment._id}`,
@@ -58,18 +76,21 @@ export default class Comments extends Component {
                     authorization: token
                 }
             }).then(_ => {
+                this.setState({ isRequestComplete: true });
                 this.props.deleteComment(position);
-                notify("success", "Comment has been deleted successfully");
-            }).catch(e => {
-                if (e.response && e.response.data.message) {
-                    if (Object.keys(e.response.data.message).length > 0) {
-                        this.setState({ errors: e.response.data.message });
+                toast.success("Comment has been deleted successfully");
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: e.response.data.message } });
+                        errors.error = error.response.data.message;
                     }
                 } else {
-                    this.setState({ errors: { error: "Unable to delete comment" } });
+                    errors.error = "Unable to delete comment";
                 }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
         }
     };
@@ -93,9 +114,14 @@ export default class Comments extends Component {
     };
 
     render() {
+        const { isRequestComplete, dialog } = this.state;
+        if (!isRequestComplete) return <Loading />;
         if (this.props.comments.length > 0) {
             return (
                 <>
+                    {
+                        dialog
+                    }
                     {this.state.dialog}
                     {
                         this.props.comments.map((comment, position) => {
@@ -128,7 +154,12 @@ export default class Comments extends Component {
             );
         } else {
             return (
-                <h6 className="text-danger">NO COMMENTS YET</h6>
+                <>
+                    {
+                        dialog
+                    }
+                    <h6 className="text-danger">NO COMMENTS YET</h6>
+                </>
             );
         }
     }

@@ -7,16 +7,25 @@ const categoryRoute = new Express.Router();
 
 categoryRoute.route('/')
     .get(async (req, res, next) => {
-        const categories = await Category.find({});
-        res.send(categories);
+        try {
+            const categories = await Category.find({});
+            res.send(categories);
+        } catch (error) {
+            next(error);
+        }
     })
     .post(Auth, AdminUser, async (req, res, next) => {
-        const validationErrors = await addCategoryData(req.body);
-        if (Object.keys(validationErrors).length == 0) {
-            const category = await Category.create(req.body).catch(e => next(e));
-            res.status(201).send(category);
-        } else {
-            res.status(400).send({ message: validationErrors });
+        try {
+            const validationErrors = await addCategoryData(req.body);
+            if (Object.keys(validationErrors).length == 0) {
+                const category = await Category.create(req.body);
+
+                res.status(201).send(category);
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
         }
     });
 
@@ -44,29 +53,33 @@ categoryRoute.route("/:categoryID")
         }
     })
     .put(AdminUser, async (req, res, next) => {
-        const validationErrors = await updateCategoryData({ ...req.body, ...req.params });
-        if (Object.keys(validationErrors).length == 0) {
-            let category = await Category.findById(req.params.categoryID).catch(e => next(e));
-            if (category) {
-                if (category.news.length == 0) {
-                    if (req.body.category && category.category != req.body.category)
-                        category.category = req.body.category;
+       try {
+           const validationErrors = await updateCategoryData({ ...req.body, ...req.params });
+           if (Object.keys(validationErrors).length == 0) {
+               let category = await Category.findById(req.params.categoryID);
+               if (category) {
+                   if (category.news.length == 0) {
+                       if (req.body.category && category.category != req.body.category)
+                           category.category = req.body.category;
 
-                    category = await category.save();
-                    res.send(category);
-                } else {
-                    const error = new Error(category.news.length + " news belongs to this category, updation of the category is prohibited");
-                    error.statusCode = 400;
-                    next(error);
-                }
-            } else {
-                const error = new Error("Category with id: " + req.params.categoryID + " not found");
-                error.statusCode = 400;
-                next(error);
-            }
-        } else {
-            res.status(400).send({ message: validationErrors });
-        }
+                       category = await category.save();
+                       res.send(category);
+                   } else {
+                       const error = new Error(category.news.length + " news belongs to this category, updation of the category is prohibited");
+                       error.statusCode = 400;
+                       next(error);
+                   }
+               } else {
+                   const error = new Error("Category with id: " + req.params.categoryID + " not found");
+                   error.statusCode = 400;
+                   next(error);
+               }
+           } else {
+               res.status(400).send({ message: validationErrors });
+           }
+       } catch (error) {
+           next(error);
+       }
     })
     .delete(AdminUser, async (req, res, next) => {
         try {

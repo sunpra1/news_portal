@@ -3,11 +3,14 @@ import { Redirect } from 'react-router-dom';
 import Axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faLock, faPhone } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faLock, faPhone, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { BaseURL } from '../utils/constant';
 import Validator from 'validator';
 import Footer from '../layout/Footer';
 import Navbar from '../layout/Navbar';
+import Loading from '../layout/Loading';
+import { simplifiedError } from '../utils/simplifiedError';
+import Dialog from '../layout/Dialog';
 
 export default class Register extends Component {
     static contextType = UserContext;
@@ -19,9 +22,21 @@ export default class Register extends Component {
             password: '',
             confirm_password: '',
             errors: {},
-            isLoggedIn: false
+            dialog: null,
+            isLoggedIn: false,
+            isRequestComplete: true
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = ["fullName", "phone", "password", "confirm_password"];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     onPhoneBlur = e => {
         const phone = e.target.value;
@@ -32,29 +47,35 @@ export default class Register extends Component {
         } else if (!Validator.isNumeric(phone)) {
             this.setState({ errors: { phone: "Phone number must be numeric value" } });
         } else {
+            this.setState({ isRequestComplete: false });
             Axios({
                 method: "post",
                 url: `${BaseURL}users/validate-unique-user`,
                 data: { phone }
             }).then(result => {
+                this.setState({ isRequestComplete: true });
                 if (!result.data.isUnique) {
                     this.setState({ errors: { phone: "Phone number is already taken" } });
                 } else {
                     const { errors } = this.state;
-                    if (errors.email) {
-                        delete errors.email;
-                        this.setState({ errors });
+                    if (errors.phone) {
+                        delete errors.phone;
                     }
+                    this.setState({ errors });
                 }
-            })
-                .catch(e => {
-                    if (e.response && e.response.data.message) {
-                        console.log(e.response.data.message);
-                        this.setState({ errors: { error: e.response.data.message } });
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: "Email validation failed" } });
+                        errors.error = error.response.data.message;
                     }
-                });
+                } else {
+                    errors.error = "Unable to verify the phone number";
+                }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            });
         }
     };
 
@@ -88,7 +109,6 @@ export default class Register extends Component {
                     break;
                 }
             }
-
             if (containsNumeric) {
                 let { errors } = this.state;
                 errors.fullName = "Full name cannot contain numeric characters";
@@ -142,28 +162,31 @@ export default class Register extends Component {
         };
 
         if (this.validate(data)) {
+            this.setState({ isRequestComplete: false });
             Axios({
                 method: 'post',
                 url: `${BaseURL}users/register`,
                 data: data
             }).then(result => {
+                this.setState({ isRequestComplete: true });
                 const { user, token } = result.data;
                 if (token) {
                     localStorage.setItem("token", token);
                     this.context.setUser(user);
                 }
-            })
-                .catch(e => {
-                    if (e.response && e.response.data.message) {
-                        if (Object.keys(e.response.data.message).length > 0) {
-                            this.setState({ errors: e.response.data.message });
-                        } else {
-                            this.setState({ errors: { error: e.response.data.message } });
-                        }
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: "User registration failed" } });
+                        errors.error = error.response.data.message;
                     }
-                });
+                } else {
+                    errors.error = "Unable to get you registered";
+                }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            });
 
         }
     };
@@ -202,26 +225,28 @@ export default class Register extends Component {
     };
 
     render() {
-        const { errors, fullName, phone, password, confirm_password } = this.state;
+        const { errors, fullName, phone, password, confirm_password, isRequestComplete, dialog } = this.state;
         const { user } = this.context;
+        if (user && (user.role === "ADMIN" || user.role === "AUTHOR")) return <Redirect to="/" />;
 
-        if (user && user.role === "ADMIN") {
-            return <Redirect to="/" />;
-        }
+        if (!isRequestComplete) return <Loading />;
 
         return (
             <>
+                {
+                    dialog
+                }
                 <Navbar />
                 <div className="container-fluid content-height bg-grey">
                     <div className="row m-0 p-4">
-                        <div className="col-md-6 dami-bg mx-auto card rounded-0 box-shadow">
+                        <div className="col-md-6 mx-auto card rounded-0 box-shadow">
                             <div className="card-header">
-                                <h5 className="modal-title text-light">REGISTRATION FORM</h5>
+                                <h5 className="modal-title text-info">REGISTRATION FORM</h5>
                             </div>
                             <div className="card-body p-3">
                                 <form onSubmit={this.onFormSubmit} method="post">
                                     <div className="form-group">
-                                        <label htmlFor="fullName" className="text-light">FULL NAME</label>
+                                        <label htmlFor="fullName" className="text-info">FULL NAME</label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faUser} /> </span>
@@ -234,7 +259,7 @@ export default class Register extends Component {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="phone" className="text-light">Phone</label>
+                                        <label htmlFor="phone" className="text-info">Phone</label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faPhone} /> </span>
@@ -247,7 +272,7 @@ export default class Register extends Component {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="passeord" className="text-light">PASSWORD</label>
+                                        <label htmlFor="passeord" className="text-info">PASSWORD</label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
@@ -260,7 +285,7 @@ export default class Register extends Component {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="confirm_password" className="text-light">CONFIEM PASSWORD</label>
+                                        <label htmlFor="confirm_password" className="text-info">CONFIEM PASSWORD</label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>

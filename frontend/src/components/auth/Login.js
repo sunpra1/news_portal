@@ -1,13 +1,16 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
-import { notify } from '../layout/Notification';
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLock, faPhone } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faPhone, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { Redirect } from 'react-router-dom';
 import { BaseURL } from '../utils/constant';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
+import { simplifiedError } from '../utils/simplifiedError';
+import Dialog from '../layout/Dialog';
+import Loading from '../layout/Loading';
+import Validator from 'validator';
 
 export default class Login extends Component {
     static contextType = UserContext;
@@ -16,14 +19,39 @@ export default class Login extends Component {
         this.state = {
             phone: "",
             password: "",
-            errors: {}
+            errors: {},
+            dialog: null,
+            isRequestComplete: true
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = ["phone", "password"];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="LOGIN FAILED" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     onChange = e => {
         const name = e.target.name;
         const value = e.target.value;
         this.setState({ [name]: value });
+    };
+
+    onInputFieldFocus = e => {
+        let { errors } = this.state;
+        delete errors[e.target.name];
+        this.setState({ errors });
+    };
+
+    onInputFieldBlur = e => {
+        let { errors } = this.state;
+        if (Validator.trim(e.target.value).length === 0)
+            errors[e.target.name] = `${e.target.name.substr(0, 1).toUpperCase()}${e.target.name.substr(1, (e.target.name.length -1))} is required`;
+        this.setState({ errors });
     };
 
     onSubmit = e => {
@@ -35,26 +63,30 @@ export default class Login extends Component {
         };
 
         if (this.validate(data)) {
+            this.setState({ isRequestComplete: false });
             Axios({
                 method: "post",
                 url: `${BaseURL}users/login`,
                 data
             }).then(result => {
+                this.setState({ isRequestComplete: true });
                 const { user, token } = result.data;
                 if (token) {
                     localStorage.setItem("token", token);
                     this.context.setUser(user);
                 }
-            }).catch(e => {
-                if (e.response && e.response.data.message) {
-                    if (Object.keys(e.response.data.message).length > 0) {
-                        this.setState({ errors: e.response.data.message });
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        notify("warning", e.response.data.message);
+                        errors.error = error.response.data.message;
                     }
                 } else {
-                    notify("danger", "Unable to verify user credentials");
+                    errors.error = "Invalid credentials provided";
                 }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
         }
     };
@@ -73,32 +105,35 @@ export default class Login extends Component {
     };
 
     render() {
-        const { errors, phone, password } = this.state;
+        const { errors, phone, password, dialog, isRequestComplete } = this.state;
         const { user } = this.context;
 
-        if (user && user.role === "ADMIN") {
-            return <Redirect to="/" />;
-        }
+        if (user && (user.role === "ADMIN" || user.role === "AUTHOR")) return <Redirect to="/" />;
+
+        if (!isRequestComplete) return <Loading />;
 
         return (
             <>
+                {
+                    dialog
+                }
                 <Navbar />
                 <div className="container-fluid content-height bg-grey">
                     <div className="row m-0 p-4">
-                        <div className="col-md-6 dami-bg mx-auto card rounded-0 box-shadow">
+                        <div className="col-md-6 mx-auto card rounded-0 box-shadow">
                             <div className="card-header">
-                                <h5 className="modal-title text-light">LOGIN FORM</h5>
+                                <h5 className="modal-title text-info">LOGIN FORM</h5>
                             </div>
 
                             <div className="card-body">
                                 <form onSubmit={this.onSubmit} method="post">
                                     <div className="form-group">
-                                        <label htmlFor="phone" className="text-light">PHONE</label>
+                                        <label htmlFor="phone" className="text-info">PHONE</label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"><FontAwesomeIcon icon={faPhone} /> </span>
                                             </div>
-                                            <input type="number" name="phone" value={phone} onChange={this.onChange} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} autoComplete="off" />
+                                            <input type="number" name="phone" value={phone} onChange={this.onChange} onFocus={this.onInputFieldFocus} onBlur={this.onInputFieldBlur} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} autoComplete="off" />
                                             <div className="invalid-feedback">
                                                 <span>{errors.phone}</span>
                                             </div>
@@ -106,12 +141,12 @@ export default class Login extends Component {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="password" className="text-light">PASSWORD</label>
+                                        <label htmlFor="password" className="text-info">PASSWORD</label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
                                             </div>
-                                            <input type="password" name="password" value={password} onChange={this.onChange} placeholder="YOUR PASSWORD" className={"form-control rounded-0 " + (errors.password ? "is-invalid" : "")} autoComplete="off" />
+                                            <input type="password" name="password" value={password} onChange={this.onChange} onFocus={this.onInputFieldFocus} onBlur={this.onInputFieldBlur} placeholder="YOUR PASSWORD" className={"form-control rounded-0 " + (errors.password ? "is-invalid" : "")} autoComplete="off" />
                                             <div className="invalid-feedback">
                                                 <span>{errors.password}</span>
                                             </div>

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faImage, faTimes, faNewspaper, faTachometerAlt, faPenAlt } from '@fortawesome/free-solid-svg-icons';
-import { notify } from '../layout/Notification';
+import { faImage, faTimes, faNewspaper, faTachometerAlt, faPenAlt, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { toast } from 'react-toastify';
 import { BaseURL } from '../utils/constant';
 import ReactQuill from 'react-quill';
 import './wyswyg.css';
@@ -11,11 +11,18 @@ import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import Validator from 'validator';
+import { simplifiedError } from '../utils/simplifiedError';
+import Dialog from '../layout/Dialog';
+import Loading from '../layout/Loading';
+import { UserContext } from '../context/UserContext';
+import { Redirect } from 'react-router-dom';
 
 export default class UpdateNews extends Component {
+    static contextType = UserContext;
     constructor(props) {
         super(props);
         this.state = {
+            news: null,
             id: "",
             categories: [],
             title: "",
@@ -23,9 +30,21 @@ export default class UpdateNews extends Component {
             oldImagesURL: [],
             images: [],
             category: "0",
-            errors: {}
+            errors: {},
+            dialog: null,
+            isRequestComplete: false
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = ["phone", "password"];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     modules = {
         toolbar: [
@@ -180,6 +199,8 @@ export default class UpdateNews extends Component {
         const token = localStorage.getItem("token");
         let stateValues = this.state;
         if (this.validate(stateValues) && token) {
+            this.setState({ isRequestComplete: false });
+
             const data = new FormData();
             data.append("title", stateValues.title);
             data.append("description", stateValues.description);
@@ -197,18 +218,21 @@ export default class UpdateNews extends Component {
                     authorization: token
                 }
             }).then(result => {
-                if (result.data) {
-                    notify("success", "News updated successfully");
-                    const news = result.data;
-                    this.setState({ id: news._id, category: news.category, title: news.title, description: news.description, oldImagesURL: news.images, images: [], errors: {} });
-                    // this.props.history.goBack();
-                }
-            }).catch(e => {
-                if (e.response && e.response.data.message) {
-                    notify("danger", e.response.data.message);
+                const news = result.data;
+                this.setState({ news, id: news._id, category: news.category, title: news.title, description: news.description, oldImagesURL: news.images, images: [], errors: {}, isRequestComplete: true });
+                toast.success("News updated successfully");
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
+                    } else {
+                        errors.error = error.response.data.message;
+                    }
                 } else {
-                    notify("danger", "Unable to add news");
+                    errors.error = "Unable to update news";
                 }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
         }
     };
@@ -234,55 +258,70 @@ export default class UpdateNews extends Component {
         return Object.keys(errors).length === 0;
     };
 
-    componentDidMount = () => {
+    componentDidMount = async () => {
         const news = this.props.location.news;
-        console.log(news);
         if (news) {
-            this.setState({ id: news._id, category: news.category._id, title: news.title, description: news.description, oldImagesURL: news.images });
-        } else {
             Axios({
                 method: 'get',
-                url: `${BaseURL}news/${this.props.match.params.newsID}`
+                url: `${BaseURL}categories`
             }).then(result => {
-                const news = result.data;
-                this.setState({ id: news._id, category: news.category._id, title: news.title, description: news.description, oldImagesURL: news.images });
-            }).catch(e => {
-                if (e.response && e.response.data.message) {
-                    if (Object.keys(e.response.data.message).length > 0) {
-                        this.setState({ errors: e.response.data.message });
+                this.setState({ news, categories: result.data, id: news._id, category: news.category._id, title: news.title, description: news.description, oldImagesURL: news.images, isRequestComplete: true });
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: e.response.data.message } });
+                        errors.error = error.response.data.message;
                     }
                 } else {
-                    this.setState({ errors: { error: "Unable to fetch news categories" } });
+                    errors.error = "Unable to fetch news categories";
                 }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
-        }
 
-        Axios({
-            method: 'get',
-            url: `${BaseURL}categories`
-        }).then(result => {
-            console.log(result.data);
-            this.setState({ categories: result.data });
-        })
-            .catch(e => {
-                if (e.response && e.response.data.message) {
-                    if (Object.keys(e.response.data.message).length > 0) {
-                        this.setState({ errors: e.response.data.message });
+        } else {
+            try {
+                const response = await Promise.all([
+                    Axios({
+                        method: 'get',
+                        url: `${BaseURL}news/${this.props.match.params.newsID}`
+                    }),
+                    Axios({
+                        method: 'get',
+                        url: `${BaseURL}categories`
+                    })
+                ]);
+
+                const news = response[0].data;
+                const categories = response[1].data;
+                this.setState({ news, categories, id: news._id, category: news.category._id, title: news.title, description: news.description, oldImagesURL: news.images, isRequestComplete: true });
+            } catch (error) {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: e.response.data.message } });
+                        errors.error = error.response.data.message;
                     }
                 } else {
-                    this.setState({ errors: { error: "Unable to fetch news categories" } });
+                    errors.error = "Unable to fetch news and news category";
                 }
-            });
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            }
+        }
     };
 
     render() {
-        const { errors, images, categories, oldImagesURL, category, title, description } = this.state;
+        const { news, errors, images, categories, oldImagesURL, category, title, description, dialog, isRequestComplete } = this.state;
+        const { user } = this.context;
+        if (!isRequestComplete) return <Loading />;
+        if (user.role === "ADMIN" || (news && news.author._id === user._id)) return <Redirect to="/" />
         return (
             <>
+                {
+                    dialog
+                }
                 <Navbar />
                 <div className="container-fluid content-height">
                     <div className="row">

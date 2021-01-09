@@ -2,19 +2,32 @@ import { faExclamationTriangle, faPenAlt, faTrash } from '@fortawesome/free-soli
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { Component } from 'react';
 import Axios from 'axios';
-import { notify } from '../layout/Notification';
 import { BaseURL } from '../utils/constant';
 import { Link } from 'react-router-dom';
 import Dialog from '../layout/Dialog';
+import { toast } from 'react-toastify';
+import { simplifiedError } from '../utils/simplifiedError';
+import Loading from '../layout/Loading';
 
 export default class NewsList extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            dialog: null
+            dialog: null,
+            isRequestComplete: true
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = [];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     onDeleteNewsClicked = (news, position) => {
         const deleteDialog = <Dialog headerText="Are you sure?" bodyText="Please confirm to delete the news." positiveButton={{ text: "OK", handler: () => this.deleteHandler(news, position) }} negativeButton={{ text: "Cancel" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
@@ -24,6 +37,7 @@ export default class NewsList extends Component {
     deleteHandler = (news, position) => {
         const token = localStorage.getItem("token");
         if (token) {
+            this.setState({ isRequestComplete: false });
             Axios({
                 method: 'delete',
                 url: `${BaseURL}news/${news._id}`,
@@ -31,29 +45,37 @@ export default class NewsList extends Component {
                     authorization: token
                 }
             }).then(result => {
+                this.setState({ isRequestComplete: false });
                 this.props.deleteNews(position);
-                notify("success", "News deleted successfully");
-            })
-                .catch(e => {
-                    if (e.response && e.response.data.message) {
-                        if (Object.keys(e.response.data.message).length > 0) {
-                            this.setState({ errors: e.response.data.message });
-                        } else {
-                            this.setState({ errors: { error: e.response.data.message } });
-                        }
+                toast.success("News deleted successfully");
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        this.setState({ errors: { error: "Unable to fetch news categories" } });
+                        errors.error = error.response.data.message;
                     }
-                });
+                } else {
+                    errors.error = "Unable to delete news";
+                }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            });
         }
     };
 
     render() {
         const { news } = this.props;
+        const { dialog, isRequestComplete } = this.state;
+
+        if (!isRequestComplete) return <Loading />;
+
         if (news.length > 0) {
             return (
                 <>
-                    {this.state.dialog}
+                    {
+                        dialog
+                    }
                     <div className="table-responsive p-0">
                         <table className="table table-stripped table-bordered table-hover">
                             <thead>

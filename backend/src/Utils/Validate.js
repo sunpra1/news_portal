@@ -87,6 +87,31 @@ const uniqueUserData = data => {
     return error;
 };
 
+const updateUserRoleData = data => {
+    let error = {};
+    if (data.id) {
+        if (Validator.trim(data.id.toString()).length == 0) {
+            error.id = "User id is left empty";
+        } else if (!Validator.isMongoId(data.id.toString())) {
+            error.id = "User id provided is not valid";
+        }
+    } else {
+        error.id = "User id is required field";
+    }
+
+    if (data.role) {
+        if (Validator.trim(data.role.toString()).length == 0) {
+            error.role = "User role is left empty";
+        } else if (!["ADMIN", "AUTHOR", "USER"].includes(Validator.trim(data.role).toUpperCase())) {
+            error.role = "ADMIN, AUTHOR, and USER are only valid user roles";
+        }
+    } else {
+        error.role = "User role is required field";
+    }
+
+    return error;
+};
+
 const loginData = data => {
     let error = {};
 
@@ -194,7 +219,7 @@ const addNewsData = data => {
     return error;
 };
 
-const getAllNewsParams = data => {
+const getNewsParams = data => {
     let error = {};
     if (data.page) {
         if (!Validator.isNumeric(data.page)) {
@@ -385,12 +410,6 @@ const getPopularNewsData = data => {
         error.isCategoryWise = "True and false are only valid route parameter for isCategoryWise";
     }
 
-    if (!Validator.isNumeric(data.limit.toString())) {
-        error.limit = "Only numeric value is supported for route parameter limit";
-    } else if (Number(data.limit) == 0) {
-        error.limit = "Route parameter limit cannot be zero";
-    }
-
     if (!Validator.isNumeric(data.threshold.toString())) {
         error.threshold = "Only numeric value is supported for route parameter threshold";
     }
@@ -412,4 +431,4 @@ const getSearchSuggestionsData = (data) => {
     return error;
 };
 
-export { addUserData, uniqueUserData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getAllNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, increaseNewsViewData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData };
+export { addUserData, uniqueUserData, updateUserRoleData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, increaseNewsViewData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData };

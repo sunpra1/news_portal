@@ -7,7 +7,7 @@
   "scripts": {
     "mongoDB": "c:/mongodb/bin/mongod.exe --dbpath=c:/mongodb/mongodb-data",
     "start": "./node_modules/.bin/env-cmd -f ./config/dev.env nodemon src/index.js",
-    "test": "./node_modules/.bin/env-cmd -f ./config/dev.env jest"
+    "test": "./node_modules/.bin/env-cmd -f ./config/dev.env jest --coverage"
   },
   "keywords": [],
   "author": "",

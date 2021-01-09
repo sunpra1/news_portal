@@ -3,17 +3,29 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faInfo, faPenAlt, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Axios from 'axios';
 import Loading from '../layout/Loading';
-import { notify } from '../layout/Notification';
+import { toast } from 'react-toastify';
 import { BaseURL } from '../utils/constant';
+import { simplifiedError } from '../utils/simplifiedError';
 import Dialog from '../layout/Dialog';
 
 class CategoryList extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            dialog: null
+            dialog: null,
+            isRequestComplete: true
         };
     }
+
+    setUpErrorDialog = () => {
+        const { errors } = this.state;
+        const keysToBeIgnored = [];
+        const errorMessage = simplifiedError(errors, keysToBeIgnored);
+        if (errorMessage.errorString) {
+            const errorDialog = <Dialog type="danger" headerText="SOMETHING WENT WRONG" bodyText={errorMessage.errorString} positiveButton={{ text: "OK" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+            this.setState({ dialog: errorDialog, errors: errorMessage.errorObject });
+        }
+    };
 
     onCategoryEditClicked = (category, position) => {
         if (category.news.length > 0) {
@@ -39,53 +51,60 @@ class CategoryList extends Component {
 
     deleteHandler = (category, position) => {
         const token = localStorage.getItem("token");
-        Axios({
-            method: "delete",
-            url: `${BaseURL}categories/${category._id}`,
-            headers: {
-                authorization: token
-            }
-        }).then(_ => {
-            this.props.deleteCategory(position);
-            notify("success", "Category deleted successfully");
-        }).catch(e => {
-            if (e.response && e.response.data.message) {
-                if (Object.keys(e.response.data.message).length > 0) {
-                    this.setState({ errors: e.response.data.message });
-                } else {
-                    this.setState({ errors: { error: e.response.data.message } });
+        if (token) {
+            this.setState({ isRequestComplete: false });
+            Axios({
+                method: "delete",
+                url: `${BaseURL}categories/${category._id}`,
+                headers: {
+                    authorization: token
                 }
-            } else {
-                this.setState({ errors: { error: "Unable to delete your category" } });
-            }
-        });
+            }).then(_ => {
+                this.setState({ isRequestComplete: true });
+                this.props.deleteCategory(position);
+                toast.success("Category deleted successfully");
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
+                    } else {
+                        errors.error = error.response.data.message;
+                    }
+                } else {
+                    errors.error = "Unable to delete your category";
+                }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            });
+        }
     };
 
     render() {
         const { categories } = this.props;
-        const { dialog } = this.state;
+        const { dialog, isRequestComplete } = this.state;
 
-        if (!categories) {
-            return <Loading />;
-        }
+        if (!isRequestComplete) return <Loading />;
 
-        else if (categories.length === 0) {
+        if (categories.length === 0) {
             return (
-                <div className="table-responsive">
-                    <table className="table table-stripped table-bordered table-hover">
-                        <thead>
-                            <tr className="bg-info text-light">
-                                <th>CATEGORIES</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colSpan="2" className="text-danger text-center">No Categories Found</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <>
+                    { dialog}
+                    <div className="table-responsive">
+                        <table className="table table-stripped table-bordered table-hover">
+                            <thead>
+                                <tr className="bg-info text-light">
+                                    <th>CATEGORIES</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colSpan="2" className="text-danger text-center">No Categories Found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </>
             );
         }
 
