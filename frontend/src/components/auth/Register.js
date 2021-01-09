@@ -202,7 +202,6 @@ export default class Register extends Component {
                 errors.fullName = "Full name cannot be numeric characters";
         }
 
-
         if (!inputs.phone)
             errors.phone = "Phone is required";
 
