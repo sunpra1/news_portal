@@ -2,11 +2,11 @@ import { faExclamationTriangle, faPenAlt, faTrash } from '@fortawesome/free-soli
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { Component } from 'react';
 import Axios from 'axios';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import { Link } from 'react-router-dom';
 import Dialog from '../layout/Dialog';
 import { toast } from 'react-toastify';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Loading from '../layout/Loading';
 
 export default class NewsList extends Component {
@@ -51,7 +51,7 @@ export default class NewsList extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -68,13 +68,14 @@ export default class NewsList extends Component {
         const { news } = this.props;
         const { dialog, isRequestComplete } = this.state;
 
-        if (!isRequestComplete) return <Loading />;
-
         if (news.length > 0) {
             return (
                 <>
                     {
                         dialog
+                    }
+                    {
+                        !isRequestComplete && <Loading />
                     }
                     <div className="table-responsive p-0">
                         <table className="table table-stripped table-bordered table-hover">

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faNewspaper, faTachometerAlt, faEye, faCalendar, faBars, faShare, faComments, faSmile, faSurprise, faLaugh, faAngry, faSadTear, faInfoCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
@@ -12,7 +12,7 @@ import './news.css';
 import ReactHtmlParser from 'react-html-parser';
 import Comments from './Comments';
 import ImageSlider from './ImageSlider';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 import { UserContext } from '../context/UserContext';
@@ -112,7 +112,7 @@ export default class ViewNews extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -128,8 +128,7 @@ export default class ViewNews extends Component {
     render() {
         const { news, showDescription, dialog, isRequestComplete } = this.state;
         const { user } = this.context;
-        if (!isRequestComplete) return <Loading />;
-        if (user.role === "ADMIN" || (news && news.author._id === user._id)) return <Redirect to="/" />
+        if (user.role !== "ADMIN" && (news && news.author._id !== user._id)) return <Redirect to="/" />
 
         let newsReacts;
         if (news)
@@ -152,14 +151,14 @@ export default class ViewNews extends Component {
                                     <p className="mt-3 text-secondary font-italic"><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard / <FontAwesomeIcon icon={faNewspaper} /> News / <FontAwesomeIcon icon={faEye} /> View News</p>
                                 </div>
                                 {
-                                    news && (
+                                    isRequestComplete ? (
                                         <div className="col-12 mx-auto card-body rounded-0 p-0">
                                             <div className="card-body">
                                                 <div className="row">
                                                     <div className="col-12">
                                                         <div className="row box-shadow py-3">
                                                             <div className="col-sm-2 col-md-1 p-1 d-flex justify-content-md-end justify-content-sm-center" >
-                                                                <img src={news.author && news.author.image ? news.author.image : User} style={{ width: "8vh", height: "8vh" }} alt="" className="img-thumbnail img-fluid rounded-circle" />
+                                                                <img src={news.author && news.author.image ? `data:${news.author.image.mimetype};base64,${news.author.image.buffer}` : User} style={{ width: "8vh", height: "8vh" }} alt="" className="img-thumbnail img-fluid rounded-circle" />
                                                             </div>
                                                             <div className="col-sm-10 col-md-11 p-1">
                                                                 <span className="text-secondary mr-3" style={{ fontSize: "13px" }}>{news.author.fullName}</span>
@@ -225,7 +224,7 @@ export default class ViewNews extends Component {
                                                 </div>
                                             </div>
                                         </div>
-                                    )
+                                    ) : <Loading />
                                 }
                             </div>
                         </div>

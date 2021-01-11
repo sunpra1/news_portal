@@ -5,11 +5,11 @@ import { UserContext } from '../context/UserContext';
 import { Link, Redirect } from 'react-router-dom';
 import CategoryList from './CategoryList';
 import Axios from 'axios';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import Footer from '../layout/Footer';
 import Navbar from '../layout/Navbar';
 import Sidebar from '../layout/Sidebar';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 
@@ -42,7 +42,7 @@ export default class Categories extends Component {
         }).catch(error => {
             let { errors } = this.state;
             if (error.response && error.response.data.message) {
-                if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                     errors = error.response.data.message;
                 } else {
                     errors.error = error.response.data.message;
@@ -66,8 +66,6 @@ export default class Categories extends Component {
 
         if (!this.context.user || (this.context.user && this.context.user.role !== "ADMIN")) return <Redirect to="/login" />;
 
-        if (!isRequestComplete) return <Loading />;
-
         return (
             <>
                 {
@@ -86,20 +84,24 @@ export default class Categories extends Component {
                                     <p className="mt-3 text-secondary font-italic"><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard / <FontAwesomeIcon icon={faBars} /> Categories</p>
                                 </div>
 
-                                <div className="card-body">
-                                    <div className="row d-flex justify-content-around">
+                                {
+                                    isRequestComplete ? (
+                                        <div className="card-body">
+                                            <div className="row d-flex justify-content-around">
 
-                                        <div className="col-md-12 p-0">
-                                            <Link to="/category/add" type="button" className="btn btn-primary mb-3 float-right rounded-0">
-                                                ADD CATEGORY <FontAwesomeIcon icon={faPlus} />
-                                            </Link>
-                                        </div>
+                                                <div className="col-md-12 p-0">
+                                                    <Link to="/category/add" type="button" className="btn btn-primary mb-3 float-right rounded-0">
+                                                        ADD CATEGORY <FontAwesomeIcon icon={faPlus} />
+                                                    </Link>
+                                                </div>
 
-                                        <div className="col-md-12 p-0">
-                                            <CategoryList history={this.props.history} categories={categories} deleteCategory={this.deleteCategory} />
+                                                <div className="col-md-12 p-0">
+                                                    <CategoryList history={this.props.history} categories={categories} deleteCategory={this.deleteCategory} />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
+                                    ) : <Loading />
+                                }
                             </div>
                         </div>
                     </div>

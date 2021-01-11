@@ -3,10 +3,11 @@ import User from '../Model/User.js';
 import Bcrypt from 'bcryptjs';
 import { addUserData, uniqueUserData, loginData, updateUserData, updateUserRoleData } from '../Utils/Validate.js';
 import { AdminUser, Auth } from '../Middleware/Middleware.js';
-import { userImageUpload } from '../Utils/fileUpload.js';
+import FileUpload from '../Utils/fileUpload.js';
 import FS from 'fs';
 import Path from 'path';
 import { TakeUserSchemaFillable } from '../Middleware/TakeFillables.js';
+import Image from '../Model/Image.js';
 
 const userRouter = Express.Router();
 userRouter.route("/register")
@@ -108,20 +109,18 @@ userRouter.route("/login")
     });
 
 userRouter.route("/profile")
-    .get(Auth, (req, res, next) => {
+    .get(Auth, async (req, res, next) => {
         try {
-            res.send(req.user);
+            const user = req.user;
+            res.send(user);
         } catch (e) {
             next(e);
         }
     })
     .put(Auth, TakeUserSchemaFillable, async (req, res, next) => {
         try {
-            userImageUpload.single("image")(req, res, async error => {
+            FileUpload.single("image")(req, res, async error => {
                 if (error) {
-                    if (req.file && FS.existsSync(Path.join(Path.resolve(), req.file.path))) {
-                        FS.unlinkSync(Path.join(Path.resolve(), req.file.path));
-                    }
                     next(error);
                 } else {
                     let user = req.user;
@@ -134,11 +133,8 @@ userRouter.route("/profile")
                             req.body.password = await Bcrypt.hash(req.body.password, 8);
 
                         if (req.file) {
-                            //Deleting the old image
-                            if (user.image && FS.existsSync(Path.join(Path.resolve(), user.image))) {
-                                FS.unlinkSync(Path.join(Path.resolve(), user.image));
-                            }
-                            user.image = req.file.path;
+                            const image = new Image(req.file);
+                            user.image = image;
                         }
 
                         Object.keys(req.body).forEach(key => user[key] = req.body[key]);

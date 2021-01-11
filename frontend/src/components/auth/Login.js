@@ -4,10 +4,10 @@ import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock, faPhone, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { Redirect } from 'react-router-dom';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 import Validator from 'validator';
@@ -78,7 +78,7 @@ export default class Login extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -110,12 +110,13 @@ export default class Login extends Component {
 
         if (user && (user.role === "ADMIN" || user.role === "AUTHOR")) return <Redirect to="/" />;
 
-        if (!isRequestComplete) return <Loading />;
-
         return (
             <>
                 {
                     dialog
+                }
+                {
+                    !isRequestComplete && <Loading />
                 }
                 <Navbar />
                 <div className="container-fluid content-height bg-grey">

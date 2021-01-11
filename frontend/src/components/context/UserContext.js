@@ -1,7 +1,7 @@
 import React, { Component, createContext } from 'react';
 import Axios from 'axios';
-import { BaseURL } from '../utils/constant';
-import Loading from '../layout/Loading';
+import { BaseURL } from '../utils/Constant';
+import Initializing from '../layout/Initializing';
 
 export const UserContext = createContext();
 
@@ -10,12 +10,38 @@ export default class UserProvider extends Component {
     super(props);
     this.state = {
       user: null,
-      isDataReady: false
+      isRequestComplete: false
     };
   }
 
   setUser = user => {
     this.setState({ user });
+  };
+
+  getUserProfile = () => {
+    setInterval(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        Axios({
+          method: "get",
+          url: `${BaseURL}users/profile`,
+          headers: {
+            authorization: token
+          }
+        }).then(result => {
+          this.setState({ user: result.data });
+        }).catch(e => {
+          if (e.response && e.response.data.message) {
+            if (e.response.status && e.response.status === 401) {
+              localStorage.removeItem("token");
+              this.setState({ user: null });
+            }
+          }
+        });
+      } else {
+        this.setState({ user: null });
+      }
+    }, 15000);
   };
 
   componentDidMount = () => {
@@ -28,17 +54,18 @@ export default class UserProvider extends Component {
           authorization: token
         }
       }).then(result => {
-        this.setState({ user: result.data, isDataReady: true });
+        this.setState({ user: result.data, isRequestComplete: true });
+        this.getUserProfile();
       }).catch(e => {
         if (e.response && e.response.data.message) {
           if (e.response.status && e.response.status === 401) {
             localStorage.removeItem("token");
-            this.setState({ user: null, isDataReady: true });
+            this.setState({ user: null, isRequestComplete: true });
           }
         }
       });
     } else {
-      this.setState({ isDataReady: true})
+      this.setState({ isRequestComplete: true, user: null });
     }
   };
 
@@ -46,7 +73,7 @@ export default class UserProvider extends Component {
     return (
       <UserContext.Provider value={{ user: this.state.user, setUser: this.setUser }}>
         {
-          this.state.isDataReady ? this.props.children : <Loading /> 
+          this.state.isRequestComplete ? this.props.children : <Initializing />
         }
       </UserContext.Provider>
     );

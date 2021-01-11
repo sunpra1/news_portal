@@ -8,9 +8,9 @@ import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import Validator from 'validator';
 import DateFormat from 'dateformat';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import { UserContext } from '../context/UserContext';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 
@@ -80,7 +80,7 @@ export default class AddNews extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -119,7 +119,7 @@ export default class AddNews extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -134,11 +134,13 @@ export default class AddNews extends Component {
 
     render() {
         const { phone, role, user, errors, dialog, isRequestComplete } = this.state;
-        if (!isRequestComplete) return <Loading />;
         return (
             <>
                 {
                     dialog
+                }
+                {
+                    !isRequestComplete && <Loading />
                 }
                 <Navbar />
                 <div className="container-fluid content-height">

@@ -5,14 +5,15 @@ import { faTachometerAlt, faExclamationTriangle, faUser, faUserEdit } from '@for
 import { UserContext } from '../context/UserContext';
 import { toast } from 'react-toastify';
 import { Redirect } from 'react-router-dom';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import DefaultImage from './user.png';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
+import { getImageBuffer } from '../utils/ImageHandler';
 
 class EditProfile extends Component {
     static contextType = UserContext;
@@ -131,7 +132,7 @@ class EditProfile extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -240,17 +241,17 @@ class EditProfile extends Component {
     render() {
         const { user } = this.context;
         const { fullName, phone, gender, dob, address, errors, dialog, isRequestComplete } = this.state;
-
         if (!user) {
             return <Redirect to="/" />;
         }
-
-        if (!isRequestComplete) return <Loading />;
 
         return (
             <>
                 {
                     dialog
+                }
+                {
+                    !isRequestComplete && <Loading />
                 }
                 <Navbar />
                 <div className="container-fluid content-height">
@@ -270,7 +271,7 @@ class EditProfile extends Component {
                                         <div className="col rounded-0">
                                             {
                                                 user.image ?
-                                                    <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto" src={`${BaseURL}${user.image}`} alt={`Avatar of ${user.fullName}`} />
+                                                    <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto" src={`data:${user.image.mimetype};base64,${getImageBuffer(user.image)}`} alt={`Avatar of ${user.fullName}`} />
                                                     :
                                                     <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto" src={DefaultImage} alt={`App default avatar of ${user.fullName}`} />
                                             }

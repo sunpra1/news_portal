@@ -4,8 +4,8 @@ import { faExclamationTriangle, faInfo, faPenAlt, faTrash } from '@fortawesome/f
 import Axios from 'axios';
 import Loading from '../layout/Loading';
 import { toast } from 'react-toastify';
-import { BaseURL } from '../utils/constant';
-import { simplifiedError } from '../utils/simplifiedError';
+import { BaseURL } from '../utils/Constant';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 
 class CategoryList extends Component {
@@ -66,7 +66,7 @@ class CategoryList extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -88,7 +88,12 @@ class CategoryList extends Component {
         if (categories.length === 0) {
             return (
                 <>
-                    { dialog}
+                    {
+                        !isRequestComplete && <Loading />
+                    }
+                    {
+                        dialog
+                    }
                     <div className="table-responsive">
                         <table className="table table-stripped table-bordered table-hover">
                             <thead>

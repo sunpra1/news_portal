@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import { faAngleLeft, faAngleRight, faFilter, faNewspaper, faPlus, faSearch, faTachometerAlt, faThList, faTimesCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import NewsList from './NewsList';
@@ -9,7 +9,7 @@ import Sidebar from '../layout/Sidebar';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Validator from 'validator';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Loading from '../layout/Loading';
 import Dialog from '../layout/Dialog';
 
@@ -106,7 +106,7 @@ export default class News extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -139,7 +139,7 @@ export default class News extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -161,7 +161,7 @@ export default class News extends Component {
         }).catch(error => {
             let { errors } = this.state;
             if (error.response && error.response.data.message) {
-                if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                     errors = error.response.data.message;
                 } else {
                     errors.error = error.response.data.message;
@@ -186,7 +186,6 @@ export default class News extends Component {
 
     render() {
         const { news, categories, category, search, sortOption, page, limit, searchSuggestions, dialog, isRequestComplete } = this.state;
-        if (!isRequestComplete) return <Loading />;
         return (
             <>
                 {
@@ -205,110 +204,116 @@ export default class News extends Component {
                                     <p className="mt-3 text-secondary font-italic"><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard / <FontAwesomeIcon icon={faNewspaper} />My News</p>
                                 </div>
 
-                                <div className="card-body">
-                                    <div className="row d-flex justify-content-around">
+                                {
+                                    isRequestComplete ? (
+                                        <div className="card-body">
+                                            <div className="row d-flex justify-content-around">
 
-                                        <div className="col-12 mb-3 p-0 form-inline form-row">
+                                                <div className="col-12 mb-3 p-0 form-inline form-row">
 
-                                            <div className="col-md col-sm-12 p-0 d-flex my-1">
-                                                <div className="input-group">
-                                                    <div className="input-group-prepend">
-                                                        <button className="btn btn-info btn-sm rounded-0" value="search_btn"><FontAwesomeIcon icon={faFilter} /></button>
-                                                    </div>
-                                                    <select name="category" value={category} onChange={this.onChangeHandler} className="form-control rounded-0">
-                                                        <option value="" key="0" disabled>SELECT CATEGORY</option>
-                                                        {
-                                                            categories.length > 0 && (
-                                                                categories.map(category => {
-                                                                    return <option value={category._id} key={category._id}>{category.category}</option>;
-                                                                })
-                                                            )
-                                                        }
-                                                    </select>
-                                                    {
-                                                        category && (
-                                                            <div onClick={this.onClearCategoryFilterBtnPressed} className="input-group-append">
-                                                                <span className="input-group-text text-danger rounded-0 bg-light" id="addon-search"><FontAwesomeIcon icon={faTimesCircle} /></span>
+                                                    <div className="col-md col-sm-12 p-0 d-flex my-1">
+                                                        <div className="input-group">
+                                                            <div className="input-group-prepend">
+                                                                <button className="btn btn-info btn-sm rounded-0" value="search_btn"><FontAwesomeIcon icon={faFilter} /></button>
                                                             </div>
-                                                        )
-                                                    }
-                                                </div>
-                                            </div>
-                                            <div className="col-md col-sm-12 p-0 d-flex justify-content-center my-1">
-                                                <div className="input-group">
-                                                    <input type="text" name="search" onChange={this.onChangeHandler} value={search} placeholder="SEARCH NEWS" className="form-control rounded-0" autoComplete="off" />
-                                                    {
-                                                        search && (
-                                                            <div onClick={this.onClearSearchBtnPressed} className="input-group-append">
-                                                                <span className="input-group-text text-danger rounded-0 bg-light" id="addon-search"><FontAwesomeIcon icon={faTimesCircle} /></span>
-                                                            </div>
-                                                        )
-                                                    }
-                                                    <button onClick={this.getNews} className="btn btn-info rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faSearch} /></button>
-
-                                                    {
-                                                        searchSuggestions.length > 0 && (<div className="search-suggestions mt-2">
-                                                            <ul className="list-group rounded-0 bg-light border border-danger">
+                                                            <select name="category" value={category} onChange={this.onChangeHandler} className="form-control rounded-0">
+                                                                <option value="" key="0" disabled>SELECT CATEGORY</option>
                                                                 {
-                                                                    searchSuggestions.map(suggestion => {
-                                                                        return <li onClick={() => this.handleOnSearchSuggestionClicked(suggestion.title)} className="list-group-item p-2 rounded-0" key={suggestion._id}>{suggestion.title}</li>;
-                                                                    })
+                                                                    categories.length > 0 && (
+                                                                        categories.map(category => {
+                                                                            return <option value={category._id} key={category._id}>{category.category}</option>;
+                                                                        })
+                                                                    )
                                                                 }
-                                                            </ul>
+                                                            </select>
+                                                            {
+                                                                category && (
+                                                                    <div onClick={this.onClearCategoryFilterBtnPressed} className="input-group-append">
+                                                                        <span className="input-group-text text-danger rounded-0 bg-light" id="addon-search"><FontAwesomeIcon icon={faTimesCircle} /></span>
+                                                                    </div>
+                                                                )
+                                                            }
                                                         </div>
-                                                        )
-                                                    }
-                                                </div>
-
-
-                                            </div>
-                                            <div className="col-md col-sm-12 p-0 d-flex justify-content-end my-1">
-                                                <div className="input-group">
-                                                    <div className="input-group-prepend">
-                                                        <button className="btn btn-info btn-sm rounded-0" value="search_btn"><FontAwesomeIcon icon={faFilter} /></button>
                                                     </div>
-                                                    <select name="sortOption" value={sortOption} onChange={this.onChangeHandler} className="form-control rounded-0">
-                                                        <option value="" key="0" disabled>SORT OPTIONS</option>
-                                                        <option value="old" key="1">OLD</option>
-                                                        <option value="new" key="2">NEW</option>
-                                                        <option value="popular" key="3">POPULAR</option>
-                                                    </select>
+                                                    <div className="col-md col-sm-12 p-0 d-flex justify-content-center my-1">
+                                                        <div className="input-group">
+                                                            <input type="text" name="search" onChange={this.onChangeHandler} value={search} placeholder="SEARCH NEWS" className="form-control rounded-0" autoComplete="off" />
+                                                            {
+                                                                search && (
+                                                                    <div onClick={this.onClearSearchBtnPressed} className="input-group-append">
+                                                                        <span className="input-group-text text-danger rounded-0 bg-light" id="addon-search"><FontAwesomeIcon icon={faTimesCircle} /></span>
+                                                                    </div>
+                                                                )
+                                                            }
+                                                            <button onClick={this.getNews} className="btn btn-info rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faSearch} /></button>
 
-                                                    {
-                                                        sortOption && (
-                                                            <div onClick={this.onClearSortFilterBtnPressed} className="input-group-append">
-                                                                <span className="input-group-text text-danger rounded-0 bg-light" id="addon-search"><FontAwesomeIcon icon={faTimesCircle} /></span>
-                                                            </div>
-                                                        )
-                                                    }
+                                                            {
+                                                                searchSuggestions.length > 0 && (<div className="search-suggestions mt-2">
+                                                                    <ul className="list-group rounded-0 bg-light border border-danger">
+                                                                        {
+                                                                            searchSuggestions.map(suggestion => {
+                                                                                return <li onClick={() => this.handleOnSearchSuggestionClicked(suggestion.title)} className="list-group-item p-2 rounded-0" key={suggestion._id}>{suggestion.title}</li>;
+                                                                            })
+                                                                        }
+                                                                    </ul>
+                                                                </div>
+                                                                )
+                                                            }
+                                                        </div>
 
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        <div className="col-12 p-0 mb-3">
-                                            <div className="row">
-                                                <div className="col-md col-sm-12">
-                                                    <div className="input-group">
-                                                        <label className="my-1 mr-2" htmlFor="">NEWS PER PAGE</label>
-                                                        <input type="number" name="limit" value={limit} onChange={this.onChangeHandler} placeholder="LIMIT" className="form-control-sm rounded-0 border" style={{ width: "80px" }} />
-                                                        <button onClick={this.getNews} className="btn btn-info btn-sm rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faThList} /></button>
                                                     </div>
-                                                </div>
-                                                <div className="col-md col-sm-12">
                                                     <div className="col-md col-sm-12 p-0 d-flex justify-content-end my-1">
-                                                        <Link className="btn btn-primary rounded-0" to="/news/add">ADD NEWS &nbsp;<FontAwesomeIcon icon={faPlus} /></Link>
+                                                        <div className="input-group">
+                                                            <div className="input-group-prepend">
+                                                                <button className="btn btn-info btn-sm rounded-0" value="search_btn"><FontAwesomeIcon icon={faFilter} /></button>
+                                                            </div>
+                                                            <select name="sortOption" value={sortOption} onChange={this.onChangeHandler} className="form-control rounded-0">
+                                                                <option value="" key="0" disabled>SORT OPTIONS</option>
+                                                                <option value="old" key="1">OLD</option>
+                                                                <option value="new" key="2">NEW</option>
+                                                                <option value="popular" key="3">POPULAR</option>
+                                                            </select>
+
+                                                            {
+                                                                sortOption && (
+                                                                    <div onClick={this.onClearSortFilterBtnPressed} className="input-group-append">
+                                                                        <span className="input-group-text text-danger rounded-0 bg-light" id="addon-search"><FontAwesomeIcon icon={faTimesCircle} /></span>
+                                                                    </div>
+                                                                )
+                                                            }
+
+                                                        </div>
                                                     </div>
                                                 </div>
+
+                                                <div className="col-12 p-0 mb-3">
+                                                    <div className="row">
+                                                        <div className="col-md col-sm-12">
+                                                            <div className="input-group">
+                                                                <label className="my-1 mr-2" htmlFor="">NEWS PER PAGE</label>
+                                                                <input type="number" name="limit" value={limit} onChange={this.onChangeHandler} placeholder="LIMIT" className="form-control-sm rounded-0 border" style={{ width: "80px" }} />
+                                                                <button onClick={this.getNews} className="btn btn-info btn-sm rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faThList} /></button>
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-md col-sm-12">
+                                                            <div className="col-md col-sm-12 p-0 d-flex justify-content-end my-1">
+                                                                <Link className="btn btn-primary rounded-0" to="/news/add">ADD NEWS &nbsp;<FontAwesomeIcon icon={faPlus} /></Link>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 p-0">
+                                                    <NewsList deleteNews={this.deleteNews} news={news} />
+                                                </div>
+
                                             </div>
                                         </div>
 
-                                        <div className="col-12 p-0">
-                                            <NewsList deleteNews={this.deleteNews} news={news} />
-                                        </div>
 
-                                    </div>
-                                </div>
+                                    ) : <Loading />
+                                }
                             </div>
 
                             <nav aria-label="Page navigation">

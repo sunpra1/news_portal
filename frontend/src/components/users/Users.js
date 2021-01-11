@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import { faPlus, faTachometerAlt, faUserFriends, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from '../layout/Sidebar';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import UserList from './UserList';
 import { Link } from 'react-router-dom';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 
@@ -43,7 +43,7 @@ export default class Users extends Component {
         }).catch(error => {
             let { errors } = this.state;
             if (error.response && error.response.data.message) {
-                if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                     errors = error.response.data.message;
                 } else {
                     errors.error = error.response.data.message;
@@ -67,7 +67,6 @@ export default class Users extends Component {
 
     render() {
         const { users, dialog, isRequestComplete } = this.state;
-        if (!isRequestComplete) return <Loading />;
         return (
             <>
                 {
@@ -85,17 +84,18 @@ export default class Users extends Component {
                                     <h4 className="text-danger"><FontAwesomeIcon icon={faUserFriends} /> Users</h4>
                                     <p className="mt-3 text-secondary font-italic"><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard / <FontAwesomeIcon icon={faUserFriends} /> Users</p>
                                 </div>
-
-                                <div className="card-body">
-
-                                    <div className="row d-flex justify-content-around">
-                                        <div className="col-12 p-0 mb-3">
-                                            <Link to="/users/add" className="btn btn-primary rounded-0 float-right">ADD USER <FontAwesomeIcon icon={faPlus} /></Link>
+                                {
+                                    isRequestComplete ? (
+                                        <div className="card-body">
+                                            <div className="row d-flex justify-content-around">
+                                                <div className="col-12 p-0 mb-3">
+                                                    <Link to="/users/add" className="btn btn-primary rounded-0 float-right">ADD USER <FontAwesomeIcon icon={faPlus} /></Link>
+                                                </div>
+                                                <UserList users={users} updateUser={this.updateUser} />
+                                            </div>
                                         </div>
-                                        <UserList users={users} updateUser={this.updateUser} />
-                                    </div>
-
-                                </div>
+                                    ) : <Loading />
+                                }
                             </div>
                         </div>
                     </div>

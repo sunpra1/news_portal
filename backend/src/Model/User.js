@@ -2,6 +2,7 @@ import Mongoose from 'mongoose';
 import Validator from 'validator';
 import Jwt from 'jsonwebtoken';
 import Summary from './Summary.js';
+import { imageSchema } from './Image.js';
 
 const userSchema = Mongoose.Schema({
     fullName: {
@@ -47,9 +48,7 @@ const userSchema = Mongoose.Schema({
         }
     },
     image: {
-        type: String,
-        trim: true,
-        default: null
+        type: imageSchema
     },
     tokens: [{
         token: {

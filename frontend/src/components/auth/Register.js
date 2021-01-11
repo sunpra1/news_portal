@@ -4,12 +4,12 @@ import Axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock, faPhone, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import Validator from 'validator';
 import Footer from '../layout/Footer';
 import Navbar from '../layout/Navbar';
 import Loading from '../layout/Loading';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 
 export default class Register extends Component {
@@ -66,7 +66,7 @@ export default class Register extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -177,7 +177,7 @@ export default class Register extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -228,12 +228,13 @@ export default class Register extends Component {
         const { user } = this.context;
         if (user && (user.role === "ADMIN" || user.role === "AUTHOR")) return <Redirect to="/" />;
 
-        if (!isRequestComplete) return <Loading />;
-
         return (
             <>
                 {
                     dialog
+                }
+                {
+                    !isRequestComplete && <Loading />
                 }
                 <Navbar />
                 <div className="container-fluid content-height bg-grey">

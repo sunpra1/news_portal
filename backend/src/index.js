@@ -14,7 +14,6 @@ const setupExpress = (hasConnectedToMongoose) => {
         app.use(CORS("*"));
         app.use(Express.json());
         app.use(Express.urlencoded({ extended: false }));
-        app.use('*/uploads', Express.static('public/uploads'));
 
         app.use("/users", userRouter);
         app.use("/categories", categoryRouter);

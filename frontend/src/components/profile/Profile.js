@@ -5,8 +5,8 @@ import { UserContext } from '../context/UserContext';
 import Axios from 'axios';
 import './CSS.css';
 import DefaultImage from './user.png';
-import { BaseURL } from '../utils/constant';
-import { simplifiedError } from '../utils/simplifiedError';
+import { BaseURL } from '../utils/Constant';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 import { toast } from 'react-toastify';
@@ -14,6 +14,7 @@ import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import { Link } from 'react-router-dom';
+import { getImageBuffer } from '../utils/ImageHandler';
 
 export default class Profile extends Component {
     static contextType = UserContext;
@@ -54,7 +55,7 @@ export default class Profile extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -72,7 +73,6 @@ export default class Profile extends Component {
         const { fullName, phone, gender, dob, address, image, role } = this.context.user;
         const { dialog, isRequestComplete } = this.state;
         if (!isRequestComplete) return <Loading />;
-
         return (
             <>
                 {
@@ -98,7 +98,7 @@ export default class Profile extends Component {
                                                 <div className="card-header">
                                                     {
                                                         image ?
-                                                            <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto profile-image box-shadow bg-light" src={`${BaseURL}${image}`} alt={`Avatar of ${fullName}`} />
+                                                            <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto profile-image box-shadow bg-light" src={`data:${image.mimetype};base64,${getImageBuffer(image)}`} alt={`Avatar of ${fullName}`} />
                                                             :
                                                             <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto profile-image box-shadow bg-light" src={DefaultImage} alt={`App default avatar of ${fullName}`} />
                                                     }

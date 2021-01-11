@@ -4,8 +4,8 @@ import Axios from 'axios';
 import React, { Component } from 'react';
 import { UserContext } from '../context/UserContext';
 import Dialog from '../layout/Dialog';
-import { BaseURL } from '../utils/constant';
-import { simplifiedError } from '../utils/simplifiedError';
+import { BaseURL } from '../utils/Constant';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Loading from '../layout/Loading';
 
 export default class UserList extends Component {
@@ -52,7 +52,7 @@ export default class UserList extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -68,12 +68,14 @@ export default class UserList extends Component {
     render() {
         const { users } = this.props;
         const { dialog, isRequestComplete } = this.state;
-        if (!isRequestComplete) return <Loading />;
         const loggedInUser = this.context.user;
         return (
             <>
                 {
                     dialog
+                }
+                {
+                    !isRequestComplete && <Loading />
                 }
                 <div className="col-12 table-responsive p-0">
                     {

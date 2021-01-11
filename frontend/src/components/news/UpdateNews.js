@@ -3,7 +3,7 @@ import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage, faTimes, faNewspaper, faTachometerAlt, faPenAlt, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import ReactQuill from 'react-quill';
 import './wyswyg.css';
 import NoImage from './no_image_available.png';
@@ -11,7 +11,7 @@ import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import Validator from 'validator';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 import { UserContext } from '../context/UserContext';
@@ -27,7 +27,7 @@ export default class UpdateNews extends Component {
             categories: [],
             title: "",
             description: "",
-            oldImagesURL: [],
+            oldImages: [],
             images: [],
             category: "0",
             errors: {},
@@ -219,12 +219,12 @@ export default class UpdateNews extends Component {
                 }
             }).then(result => {
                 const news = result.data;
-                this.setState({ news, id: news._id, category: news.category, title: news.title, description: news.description, oldImagesURL: news.images, images: [], errors: {}, isRequestComplete: true });
+                this.setState({ news, id: news._id, category: news.category, title: news.title, description: news.description, oldImages: news.images, images: [], errors: {}, isRequestComplete: true });
                 toast.success("News updated successfully");
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -265,11 +265,11 @@ export default class UpdateNews extends Component {
                 method: 'get',
                 url: `${BaseURL}categories`
             }).then(result => {
-                this.setState({ news, categories: result.data, id: news._id, category: news.category._id, title: news.title, description: news.description, oldImagesURL: news.images, isRequestComplete: true });
+                this.setState({ news, categories: result.data, id: news._id, category: news.category._id, title: news.title, description: news.description, oldImages: news.images, isRequestComplete: true });
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -295,11 +295,11 @@ export default class UpdateNews extends Component {
 
                 const news = response[0].data;
                 const categories = response[1].data;
-                this.setState({ news, categories, id: news._id, category: news.category._id, title: news.title, description: news.description, oldImagesURL: news.images, isRequestComplete: true });
+                this.setState({ news, categories, id: news._id, category: news.category._id, title: news.title, description: news.description, oldImages: news.images, isRequestComplete: true });
             } catch (error) {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -313,10 +313,9 @@ export default class UpdateNews extends Component {
     };
 
     render() {
-        const { news, errors, images, categories, oldImagesURL, category, title, description, dialog, isRequestComplete } = this.state;
+        const { news, errors, images, categories, oldImages, category, title, description, dialog, isRequestComplete } = this.state;
         const { user } = this.context;
-        if (!isRequestComplete) return <Loading />;
-        if (user.role === "ADMIN" || (news && news.author._id === user._id)) return <Redirect to="/" />
+        if (user.role !== "ADMIN" && (news && news.author._id !== user._id)) return <Redirect to="/" />
         return (
             <>
                 {
@@ -334,104 +333,110 @@ export default class UpdateNews extends Component {
                                     <h4 className="text-danger"><FontAwesomeIcon icon={faPenAlt} /> Update News</h4>
                                     <p className="mt-3 text-secondary font-italic"><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard / <FontAwesomeIcon icon={faNewspaper} /> News / <FontAwesomeIcon icon={faPenAlt} /> Update News</p>
                                 </div>
-                                <div className="col mx-auto card-body rounded-0 p-0">
-                                    <div className="card-body">
-                                        <form onSubmit={this.onSubmit} method="post" encType="multipart/form-data">
-                                            <div className="form-group">
-                                                <label htmlFor="category" className="text-info">CATEGORY</label>
-                                                <select id="category" value={category} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="category" className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} >
-                                                    <option value="0" key="0" disabled>SELECT CATEGORY</option>
-                                                    {
-                                                        categories.map((category, position) => {
-                                                            return <option value={category._id} key={category._id}>{category.category}</option>;
-                                                        })
-                                                    }
-                                                </select>
-                                                <div className="invalid-feedback">
-                                                    <span>{errors.category}</span>
-                                                </div>
-                                            </div>
 
-                                            <div className="form-group">
-                                                <label htmlFor="title" className="text-info">TITLE</label>
-                                                <input id="title" type="text" value={title} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="title" placeholder="PROVIDE TITLE OF NEWS" className={"form-control rounded-0 " + (errors.title ? "is-invalid" : "")} autoComplete="off" />
-                                                <div className="invalid-feedback">
-                                                    <span>{errors.title}</span>
-                                                </div>
-                                            </div>
+                                {
+                                    isRequestComplete ? (
 
-                                            <div className="form-group">
-                                                <label className="text-info">OLD IMAGE(S)</label>
-                                                {
-                                                    oldImagesURL.length > 0 &&
-                                                    (
-                                                        <div className="col mb-2 p-0 d-flex justify-content-start">
+                                        <div className="col mx-auto card-body rounded-0 p-0">
+                                            <div className="card-body">
+                                                <form onSubmit={this.onSubmit} method="post" encType="multipart/form-data">
+                                                    <div className="form-group">
+                                                        <label htmlFor="category" className="text-info">CATEGORY</label>
+                                                        <select id="category" value={category} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="category" className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} >
+                                                            <option value="0" key="0" disabled>SELECT CATEGORY</option>
                                                             {
-                                                                oldImagesURL.map((imageURL, position) => {
-                                                                    return (
-                                                                        <div key={position}>
-                                                                            <img src={`${BaseURL}${imageURL}`} className="my-2 mr-2 p-1 border-success" style={{ height: "150px", width: "150px", border: "2px solid" }} alt={title} />
-                                                                        </div>
-                                                                    );
+                                                                categories.map((category, position) => {
+                                                                    return <option value={category._id} key={category._id}>{category.category}</option>;
                                                                 })
                                                             }
+                                                        </select>
+                                                        <div className="invalid-feedback">
+                                                            <span>{errors.category}</span>
                                                         </div>
-                                                    )
-                                                }
-                                            </div>
+                                                    </div>
 
-                                            <div className="form-group">
-                                                <label htmlFor="images" className="text-info">NEW IMAGE(S)</label>
-                                                {
-                                                    images.length > 0 && (
-                                                        <div className="col mb-2 p-0 d-flex justify-content-start">
-                                                            {
-                                                                images.map((image, position) => {
-                                                                    return (
-                                                                        <div className="position-relative" key={position}>
-                                                                            <FontAwesomeIcon onClick={() => this.handleImageDelete(position)} className="position-absolute text-danger" style={{ right: 12, top: 8 }} icon={faTimes} />
-                                                                            <img src={image.validationDetails.isImageValid ? image.dataURL : NoImage} className={`my-2 mr-2 p-1 ${!image.validationDetails.isImageValid ? "border-danger" : "border-success"}`} style={{ height: "150px", width: "150px", border: "2px solid" }} alt={title} />
-
-                                                                            {
-                                                                                !image.validationDetails.isImageValid && (
-                                                                                    <p className="text-danger text-center" style={{ fontSize: "14px" }}>{image.validationDetails.type}</p>
-                                                                                )
-                                                                            }
-
-                                                                        </div>
-                                                                    );
-                                                                })
-                                                            }
+                                                    <div className="form-group">
+                                                        <label htmlFor="title" className="text-info">TITLE</label>
+                                                        <input id="title" type="text" value={title} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="title" placeholder="PROVIDE TITLE OF NEWS" className={"form-control rounded-0 " + (errors.title ? "is-invalid" : "")} autoComplete="off" />
+                                                        <div className="invalid-feedback">
+                                                            <span>{errors.title}</span>
                                                         </div>
-                                                    )
-                                                }
-                                                <input id="images" type="file" onFocus={this.onInputFieldFocus} onChange={this.onImagesSelected} name="images" className={"form-control rounded-0 d-none " + (errors.images ? "is-invalid" : "")} autoComplete="off" multiple />
-                                                <br />
-                                                <label htmlFor="images" className="btn btn-info rounded-0"><FontAwesomeIcon icon={faImage} /> SELECT NEW IMAGE(S)</label>
-                                                {
-                                                    images.length > 0 && <span className="text-info ml-3">{images.length} Files Selected</span>
-                                                }
-                                                <div className="invalid-feedback">
-                                                    <span>{errors.images}</span>
-                                                </div>
-                                            </div>
+                                                    </div>
 
-                                            <div className="form-group">
-                                                <label htmlFor="description" className="text-info">DESCRIPTION</label>
-                                                <ReactQuill style={{ maxHeight: "55vh", overflowY: "scroll" }} id="description" modules={this.modules}
-                                                    onChange={this.onTextEditorChange} onFocus={this.onTextEditorFocus} onBlur={this.onTextEditorBlur} value={description} placeholder="PROVIDE TITLE OF NEWS" className={"bg-light rounded-0 " + (errors.description ? "is-invalid" : "")} autoComplete="off" />
-                                                <div className="invalid-feedback">
-                                                    <span>{errors.description}</span>
-                                                </div>
-                                            </div>
+                                                    <div className="form-group">
+                                                        <label className="text-info">OLD IMAGE(S)</label>
+                                                        {
+                                                            oldImages.length > 0 &&
+                                                            (
+                                                                <div className="col mb-2 p-0 d-flex justify-content-start">
+                                                                    {
+                                                                        oldImages.map((image, position) => {
+                                                                            return (
+                                                                                <div key={position}>
+                                                                                    <img src={`data:${image.mimetype};base64,${image.buffer}`} className="my-2 mr-2 p-1 border-success" style={{ height: "150px", width: "150px", border: "2px solid" }} alt={title} />
+                                                                                </div>
+                                                                            );
+                                                                        })
+                                                                    }
+                                                                </div>
+                                                            )
+                                                        }
+                                                    </div>
 
-                                            <div className="card-footer form-group text-center rounded-0">
-                                                <button type="submit" className="btn btn-primary rounded-0" name="new_discussion" value="new_discussion">UPDATE NEWS</button>
-                                            </div>
+                                                    <div className="form-group">
+                                                        <label htmlFor="images" className="text-info">NEW IMAGE(S)</label>
+                                                        {
+                                                            images.length > 0 && (
+                                                                <div className="col mb-2 p-0 d-flex justify-content-start">
+                                                                    {
+                                                                        images.map((image, position) => {
+                                                                            return (
+                                                                                <div className="position-relative" key={position}>
+                                                                                    <FontAwesomeIcon onClick={() => this.handleImageDelete(position)} className="position-absolute text-danger" style={{ right: 12, top: 8 }} icon={faTimes} />
+                                                                                    <img src={image.validationDetails.isImageValid ? image.dataURL : NoImage} className={`my-2 mr-2 p-1 ${!image.validationDetails.isImageValid ? "border-danger" : "border-success"}`} style={{ height: "150px", width: "150px", border: "2px solid" }} alt={title} />
 
-                                        </form>
-                                    </div>
-                                </div>
+                                                                                    {
+                                                                                        !image.validationDetails.isImageValid && (
+                                                                                            <p className="text-danger text-center" style={{ fontSize: "14px" }}>{image.validationDetails.type}</p>
+                                                                                        )
+                                                                                    }
+
+                                                                                </div>
+                                                                            );
+                                                                        })
+                                                                    }
+                                                                </div>
+                                                            )
+                                                        }
+                                                        <input id="images" type="file" onFocus={this.onInputFieldFocus} onChange={this.onImagesSelected} name="images" className={"form-control rounded-0 d-none " + (errors.images ? "is-invalid" : "")} autoComplete="off" multiple />
+                                                        <br />
+                                                        <label htmlFor="images" className="btn btn-info rounded-0"><FontAwesomeIcon icon={faImage} /> SELECT NEW IMAGE(S)</label>
+                                                        {
+                                                            images.length > 0 && <span className="text-info ml-3">{images.length} Files Selected</span>
+                                                        }
+                                                        <div className="invalid-feedback">
+                                                            <span>{errors.images}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="form-group">
+                                                        <label htmlFor="description" className="text-info">DESCRIPTION</label>
+                                                        <ReactQuill style={{ maxHeight: "55vh", overflowY: "scroll" }} id="description" modules={this.modules}
+                                                            onChange={this.onTextEditorChange} onFocus={this.onTextEditorFocus} onBlur={this.onTextEditorBlur} value={description} placeholder="PROVIDE TITLE OF NEWS" className={"bg-light rounded-0 " + (errors.description ? "is-invalid" : "")} autoComplete="off" />
+                                                        <div className="invalid-feedback">
+                                                            <span>{errors.description}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="card-footer form-group text-center rounded-0">
+                                                        <button type="submit" className="btn btn-primary rounded-0" name="new_discussion" value="new_discussion">UPDATE NEWS</button>
+                                                    </div>
+
+                                                </form>
+                                            </div>
+                                        </div>
+                                    ) : <Loading />
+                                }
                             </div>
                         </div>
                     </div>

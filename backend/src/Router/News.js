@@ -3,30 +3,22 @@ import { AdminUser, Auth, DeleteComment, IfAuth, PostNews, UpdateNews, UpdateCom
 import { TakeCommentReactSchemaFillable, TakeCommentSchemaFillable, TakeNewsReactSchemaFillable, TakeNewsSchemaFillable } from '../Middleware/TakeFillables.js';
 import News from '../Model/News.js';
 import { addCommentData, addNewsData, getNewsParams, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, increaseNewsViewData } from '../Utils/Validate.js';
-import { newsImageUpload } from '../Utils/fileUpload.js';
+import ImageUpload from '../Utils/fileUpload.js';
 import Category from '../Model/Category.js';
 import Validator from 'validator';
-import FS from 'fs';
-import Path from 'path';
 import User from '../Model/User.js';
 import Comment from '../Model/Comment.js';
 import CommentReact from '../Model/CommentReact.js';
 import NewsReact from '../Model/NewsReact.js';
+import Image from '../Model/Image.js';
 
 const newsRouter = new Express.Router();
 
 newsRouter.route("/")
     .post(PostNews, TakeNewsSchemaFillable, async (req, res, next) => {
         try {
-            newsImageUpload.array("images")(req, res, async error => {
+            ImageUpload.array("images")(req, res, async error => {
                 if (error) {
-                    if (req.files && req.files.length > 0) {
-                        req.files.forEach(file => {
-                            if (file && FS.existsSync(Path.join(Path.resolve(), file.path))) {
-                                FS.unlinkSync(Path.join(Path.resolve(), file.path));
-                            }
-                        });
-                    }
                     next(error);
                 } else {
                     const validationErrors = addNewsData(req.body);
@@ -38,7 +30,7 @@ newsRouter.route("/")
                             news.author = user.id;
 
                             if (req.files && req.files.length > 0) {
-                                news.images = req.files.map(file => file.path);
+                                news.images = req.files.map(file => new Image(file));
                             }
                             user.news.push(news.id);
                             await user.save();
@@ -62,13 +54,6 @@ newsRouter.route("/")
                 }
             });
         } catch (error) {
-            if (req.files && req.files.length > 0) {
-                req.files.forEach(file => {
-                    if (file && FS.existsSync(Path.join(Path.resolve(), file.path))) {
-                        FS.unlinkSync(Path.join(Path.resolve(), file.path));
-                    }
-                });
-            }
             next(error);
         }
     });
@@ -389,15 +374,8 @@ newsRouter.route("/:newsID")
     })
     .put(UpdateNews, TakeNewsSchemaFillable, async (req, res, next) => {
         try {
-            newsImageUpload.array("images")(req, res, async error => {
+            ImageUpload.array("images")(req, res, async error => {
                 if (error) {
-                    if (req.files && req.files.length > 0) {
-                        req.files.forEach(file => {
-                            if (file && FS.existsSync(Path.join(Path.resolve(), file.path))) {
-                                FS.unlinkSync(Path.join(Path.resolve(), file.path));
-                            }
-                        });
-                    }
                     next(error);
                 } else {
                     const news = req.news;
@@ -415,14 +393,7 @@ newsRouter.route("/:newsID")
                     }
 
                     if (req.files && req.files.length > 0) {
-                        if (news.images && news.images.length > 0) {
-                            news.images.forEach(image => {
-                                if (FS.existsSync(Path.join(Path.resolve(), image))) {
-                                    FS.unlinkSync(Path.join(Path.resolve(), image));
-                                }
-                            });
-                        }
-                        news.images = req.files.map(file => file.path);
+                        news.images = req.files.map(file => new Image(file));
                     }
                     Object.keys(req.body).forEach(key => news[key] = req.body[key]);
                     await news.save();
@@ -431,13 +402,6 @@ newsRouter.route("/:newsID")
                 }
             });
         } catch (error) {
-            if (req.files && req.files.length > 0) {
-                req.files.forEach(file => {
-                    if (file && FS.existsSync(Path.join(Path.resolve(), file.path))) {
-                        FS.unlinkSync(Path.join(Path.resolve(), file.path));
-                    }
-                });
-            }
             next(error);
         }
     })
@@ -448,13 +412,6 @@ newsRouter.route("/:newsID")
             newsAuthor.news = newsAuthor.news.filter(newsId => newsId.toString() != news.id.toString());
             const newsCategory = await Category.findById(news.category);
             newsCategory.news = newsCategory.news.filter(newsId => newsId.toString() != news.id.toString());
-            if (news.images && news.images.length > 0) {
-                news.images.forEach(image => {
-                    if (image && FS.existsSync(Path.join(Path.resolve(), image))) {
-                        FS.unlinkSync(Path.join(Path.resolve(), image));
-                    }
-                });
-            }
             await news.remove();
             await newsAuthor.save();
             await newsCategory.save();
@@ -634,7 +591,7 @@ newsRouter.route("/:newsID/comments/:commentID/reacts")
         }
     });
 
-newsRouter.route("/:period/:isCategoryWise/:threshold")
+newsRouter.route("/popular/:period/:isCategoryWise/:threshold")
     .get(IfAuth, async (req, res, next) => {
         try {
             const validationErrors = getPopularNewsData(req.params);

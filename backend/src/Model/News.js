@@ -1,5 +1,6 @@
 import Mongoose from 'mongoose';
 import { commentSchema } from './Comment.js';
+import { imageSchema } from './Image.js';
 import { newsReactSchema } from './NewsReact.js';
 import Summary from './Summary.js';
 
@@ -25,8 +26,7 @@ const newsSchema = Mongoose.Schema({
         ref: "User"
     },
     images: [{
-        type: String,
-        trim: true
+        type: imageSchema
     }],
     views: {
         type: Number,

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage, faPlusSquare, faTimes, faNewspaper, faTachometerAlt, faPlus, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import ReactQuill from 'react-quill';
 import './wyswyg.css';
 import NoImage from './no_image_available.png';
@@ -10,7 +10,7 @@ import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import Validator from 'validator';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import { toast } from 'react-toastify';
 import Loading from '../layout/Loading';
@@ -114,7 +114,6 @@ export default class AddNews extends Component {
             images.push({ file, dataURL, validationDetails });
         }
         const imagesError = this.getAllImagesError(images);
-        console.log(imagesError);
         const { errors } = this.state;
         delete errors.images;
         if (imagesError)
@@ -223,17 +222,17 @@ export default class AddNews extends Component {
                 toast.success("News added successfully");
                 this.props.history.goBack();
             }).catch(error => {
+                let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
-                        this.setState({ errors: error.response.data.message, isRequestComplete: true }, () => this.setUpErrorDialog());
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
                     } else {
-                        toast.error(error.response.data.message);
-                        this.setState({ isRequestComplete: true });
+                        errors.error = error.response.data.message;
                     }
                 } else {
-                    toast.error("Unable to add news");
-                    this.setState({ isRequestComplete: true });
+                    errors.error = "Unable to log you out";
                 }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
         }
     };
@@ -268,7 +267,7 @@ export default class AddNews extends Component {
         }).catch(error => {
             let { errors } = this.state;
             if (error.response && error.response.data.message) {
-                if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                     errors = error.response.data.message;
                 } else {
                     errors.error = error.response.data.message;
@@ -282,12 +281,16 @@ export default class AddNews extends Component {
 
     render() {
         const { errors, images, categories, title, category, description, isRequestComplete, dialog } = this.state;
-        if (!isRequestComplete) return <Loading />;
         return (
             <>
                 {
                     dialog
                 }
+
+                {
+                    !isRequestComplete && <Loading />
+                }
+                
                 <Navbar />
                 <div className="container-fluid content-height">
                     <div className="row">

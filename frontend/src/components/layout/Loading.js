@@ -9,12 +9,12 @@ export default function Loading() {
         botton: 0,
         left: 0,
         right: 0,
-        zIndex: 9999
-
+        zIndex: 9999,
+        backgroundColor: "rgba(0, 0, 0, 0.2)"
     }
 
     return (
-        <div className="bg-dark d-flex justify-content-around" style={style}>
+        <div className="d-flex justify-content-center" style={style}>
             <p className="spinner-grow bg-info my-auto" style={{ width: "5vh", height: "5vh", lineHeight: "100vh" }} role="status">
                 <span className="sr-only">Loading...</span>
             </p>

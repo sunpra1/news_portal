@@ -3,7 +3,7 @@ import Mongoose from 'mongoose';
 export default async (callback) => {
     let hasConnectionEstablished = false;
     try {
-        const mongoDBConnection = await Mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
+        const mongoDBConnection = await Mongoose.connect(process.env.MONGODB_LIVE_URL, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true });
 
         if (mongoDBConnection &&
             mongoDBConnection.connections &&

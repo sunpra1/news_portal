@@ -3,12 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTachometerAlt, faBars, faPenAlt, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import Axios from 'axios';
 import { toast } from 'react-toastify';
-import { BaseURL } from '../utils/constant';
+import { BaseURL } from '../utils/Constant';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import Validator from 'validator';
-import { simplifiedError } from '../utils/simplifiedError';
+import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 
@@ -73,7 +73,7 @@ class UpdateCategory extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -109,7 +109,7 @@ class UpdateCategory extends Component {
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
-                    if (typeof error.response.data.message === Object && Object.keys(error.response.data.message).length > 0) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
                         errors = error.response.data.message;
                     } else {
                         errors.error = error.response.data.message;
@@ -124,7 +124,6 @@ class UpdateCategory extends Component {
 
     render() {
         const { errors, category, isRequestComplete, dialog } = this.state;
-        if (!isRequestComplete) return <Loading />;
         return (
             <>
                 {
@@ -143,23 +142,30 @@ class UpdateCategory extends Component {
                                     <p className="mt-3 text-secondary font-italic"><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard / <FontAwesomeIcon icon={faBars} /> Categories / <FontAwesomeIcon icon={faPenAlt} /> Edit Category</p>
                                 </div>
                                 <div className="col mx-auto card-body rounded-0 p-0">
-                                    <div className="card-body">
-                                        <form action="post" onSubmit={this.onSubmit} >
-                                            <div className="form-group">
-                                                <label className="m-1" htmlFor="email">CATEGORY</label>
-                                                <div className="m-1">
-                                                    <input name="category" onChange={this.onChange} onBlur={this.onCategoryBlur} onFocus={this.onCategoryFocus} value={category} className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} />
-                                                    <div className="invalid-feedback">
-                                                        <span>{errors.category}</span>
-                                                    </div>
-                                                </div>
+                                    {
+                                        isRequestComplete ? (
+                                            <div className="card-body">
+                                                <form action="post" onSubmit={this.onSubmit} >
+                                                    <div className="form-group">
+                                                        <label className="m-1" htmlFor="email">CATEGORY</label>
+                                                        <div className="m-1">
+                                                            <input name="category" onChange={this.onChange} onBlur={this.onCategoryBlur} onFocus={this.onCategoryFocus} value={category} className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} />
+                                                            <div className="invalid-feedback">
+                                                                <span>{errors.category}</span>
+                                                            </div>
+                                                        </div>
 
+                                                    </div>
+                                                    <div className="card-footer form-group text-center rounded-0">
+                                                        <button type="submit" name="login" className="btn btn-success rounded-0 m-1 d-flex mx-auto">UPDATE</button>
+                                                    </div>
+                                                </form>
                                             </div>
-                                            <div className="card-footer form-group text-center rounded-0">
-                                                <button type="submit" name="login" className="btn btn-success rounded-0 m-1 d-flex mx-auto">UPDATE</button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                        )
+                                            :
+                                            <Loading />
+                                    }
+
                                 </div>
                             </div>
                         </div>
