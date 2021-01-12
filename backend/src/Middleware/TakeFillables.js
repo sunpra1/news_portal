@@ -21,9 +21,11 @@ const TakeNewsSchemaFillable = (req, res, next) => {
     Object.keys(req.body).forEach(key => {
         if (!News.fillable.includes(key))
             delete req.body[key];
-        else
-            if (key == "tags" && !(req.body.tags instanceof Array) && typeof req.body.tags == "string")
+        else {
+            if (key == "tags" && !(req.body.tags instanceof Array) && typeof req.body.tags == "string") {
                 req.body.tags = req.body.tags.split(",").map(tag => Validator.trim(tag).toLowerCase().replace(" ", "_"));
+            }
+        }
     });
     next();
 };

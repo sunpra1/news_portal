@@ -202,7 +202,6 @@ export default class UpdateNews extends Component {
         let stateValues = this.state;
         if (this.validate(stateValues) && token) {
             this.setState({ isRequestComplete: false });
-
             const data = new FormData();
             data.append("title", stateValues.title);
             data.append("description", stateValues.description);
@@ -221,7 +220,7 @@ export default class UpdateNews extends Component {
                 }
             }).then(result => {
                 const news = result.data;
-                this.setState({ news, id: news._id, category: news.category, title: news.title, description: news.description, tags: news.tags.toString(), oldImages: news.images, images: [], errors: {}, isRequestComplete: true });
+                this.setState({ news, id: news._id, category: news.category._id, title: news.title, description: news.description, tags: news.tags.toString(), oldImages: news.images, images: [], errors: {}, isRequestComplete: true });
                 toast.success("News updated successfully");
             }).catch(error => {
                 let { errors } = this.state;

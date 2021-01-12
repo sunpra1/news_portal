@@ -16,47 +16,41 @@ import Sharp from 'sharp';
 const newsRouter = new Express.Router();
 
 newsRouter.route("/")
-    .post(PostNews, TakeNewsSchemaFillable, async (req, res, next) => {
+    .post(PostNews, ImageUpload.array("images"), TakeNewsSchemaFillable, async (req, res, next) => {
         try {
-            ImageUpload.array("images")(req, res, async error => {
-                if (error) {
-                    next(error);
-                } else {
-                    const validationErrors = addNewsData(req.body);
-                    if (Object.keys(validationErrors).length == 0) {
-                        const category = await Category.findById(req.body.category);
-                        if (category) {
-                            const user = req.user;
-                            const news = new News(req.body);
-                            news.author = user.id;
+            const validationErrors = addNewsData(req.body);
+            if (Object.keys(validationErrors).length == 0) {
+                const category = await Category.findById(req.body.category);
+                if (category) {
+                    const user = req.user;
+                    const news = new News(req.body);
+                    news.author = user.id;
 
-                            if (req.files && req.files.length > 0) {
-                                news.images = await Promise.all(req.files.map(async file => new Image({
-                                    mimetype: "image/png",
-                                    buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
-                                })));
-                            }
-                            user.news.push(news.id);
-                            await user.save();
-
-                            category.news.push(news.id);
-                            await category.save();
-
-                            await news.save();
-
-                            news.category = category;
-                            news.author = user;
-                            res.status(201).send(news);
-                        } else {
-                            const error = new Error("Category with id: " + req.body.category + " not found");
-                            error.statusCode = 400;
-                            next(error);
-                        }
-                    } else {
-                        res.status(400).send({ message: validationErrors });
+                    if (req.files && req.files.length > 0) {
+                        news.images = await Promise.all(req.files.map(async file => new Image({
+                            mimetype: "image/png",
+                            buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
+                        })));
                     }
+                    user.news.push(news.id);
+                    await user.save();
+
+                    category.news.push(news.id);
+                    await category.save();
+
+                    await news.save();
+
+                    news.category = category;
+                    news.author = user;
+                    res.status(201).send(news);
+                } else {
+                    const error = new Error("Category with id: " + req.body.category + " not found");
+                    error.statusCode = 400;
+                    next(error);
                 }
-            });
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
         } catch (error) {
             next(error);
         }
@@ -376,38 +370,32 @@ newsRouter.route("/:newsID")
             next(error);
         }
     })
-    .put(UpdateNews, TakeNewsSchemaFillable, async (req, res, next) => {
+    .put(UpdateNews, ImageUpload.array("images"), TakeNewsSchemaFillable, async (req, res, next) => {
         try {
-            ImageUpload.array("images")(req, res, async error => {
-                if (error) {
-                    next(error);
-                } else {
-                    const news = req.news;
-                    if (req.body.category && req.body.category != news.category.id.toString()) {
-                        const oldCategory = await Category.findById(news.category);
-                        oldCategory.news = oldCategory.news.filter(newsID => newsID.toString() != news.id.toString());
-                        await oldCategory.save();
+            const news = req.news;
+            if (req.body.category && req.body.category != news.category.id.toString()) {
+                const oldCategory = await Category.findById(news.category);
+                oldCategory.news = oldCategory.news.filter(newsID => newsID.toString() != news.id.toString());
+                await oldCategory.save();
 
-                        const updatedCategory = await Category.findById(req.body.category);
-                        if (!updatedCategory.news.some(newsID => newsID.toString() == news.id.toString())) {
-                            updatedCategory.news.push(news.id);
-                            await updatedCategory.save();
-                        }
-                        news.category = updatedCategory.id;
-                    }
-
-                    if (req.files && req.files.length > 0) {
-                        news.images = req.files.map(async file => new Image({
-                            mimetype: "image/png",
-                            buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
-                        }));
-                    }
-                    Object.keys(req.body).forEach(key => news[key] = req.body[key]);
-                    await news.save();
-                    await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
-                    res.send(news);
+                const updatedCategory = await Category.findById(req.body.category);
+                if (!updatedCategory.news.some(newsID => newsID.toString() == news.id.toString())) {
+                    updatedCategory.news.push(news.id);
+                    await updatedCategory.save();
                 }
-            });
+                news.category = updatedCategory.id;
+            }
+
+            if (req.files && req.files.length > 0) {
+                news.images = req.files.map(async file => new Image({
+                    mimetype: "image/png",
+                    buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
+                }));
+            }
+            Object.keys(req.body).forEach(key => news[key] = req.body[key]);
+            await news.save();
+            await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
+            res.send(news);
         } catch (error) {
             next(error);
         }
