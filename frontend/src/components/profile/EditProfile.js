@@ -391,7 +391,7 @@ class EditProfile extends Component {
                                                     :
                                                     <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto" src={DefaultImage} alt={`App default avatar of ${user.fullName}`} />
                                             }
-                                            <p className="text-danger asterisk-info">Field Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
+                                            <p className="text-danger asterisk-info">FIELDS MARKED WITH <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> ARE REQUIRED. </p>
 
                                             <form method="post" onSubmit={this.onSubmit} encType="multipart/form-data">
                                                 <div className="form-group">

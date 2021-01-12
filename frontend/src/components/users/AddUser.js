@@ -164,7 +164,7 @@ export default class AddNews extends Component {
                                                     <h6 className="text-info text-center">USER DETAILS</h6>
                                                 </div>
                                                 <div className="card-body">
-                                                    <p className="text-danger asterisk-info">Field Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
+                                                    <p className="text-danger asterisk-info">FIELDS MARKED WITH <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> ARE REQUIRED. </p>
                                                     <form onSubmit={this.onSubmit} >
                                                         <div className="form-group">
                                                             <label htmlFor="phone" className="text-info">PHONE  <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
