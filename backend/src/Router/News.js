@@ -31,10 +31,10 @@ newsRouter.route("/")
                             news.author = user.id;
 
                             if (req.files && req.files.length > 0) {
-                                news.images = req.files.map(async file => new Image({
+                                news.images = await Promise.all(req.files.map(async file => new Image({
                                     mimetype: "image/png",
                                     buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
-                                }));
+                                })));
                             }
                             user.news.push(news.id);
                             await user.save();
@@ -81,7 +81,7 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
 
                     const cat = await Category.findById(category);
 
-                    if (cat) { 
+                    if (cat) {
                         await cat.populate({
                             path: "news",
                             match: {
@@ -114,7 +114,7 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                         }).execPopulate();
 
                         data = cat.news;
-                    } else { 
+                    } else {
                         data = [];
                     }
                 }
@@ -157,7 +157,7 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                             }
                         }).execPopulate();
                         data = cat.news;
-                    } else { 
+                    } else {
                         data = [];
                     }
                 }
@@ -606,21 +606,21 @@ newsRouter.route("/popular/:period/:isCategoryWise/:threshold")
                 const { isCategoryWise, threshold } = req.params;
                 const period = req.params.period.toUpperCase();
                 const todayDate = new Date();
-                
+
                 const lessThen = new Date();
-                switch (period) { 
+                switch (period) {
                     case "PREVIOUS_MONTH": {
-                        lessThen.setMonth(todayDate.getMonth() - 1)
+                        lessThen.setMonth(todayDate.getMonth() - 1);
                         break;
                     }
-                        
+
                     case "PREVIOUS_WEEK": {
-                        lessThen.setDate(todayDate.getDate() - 7)
+                        lessThen.setDate(todayDate.getDate() - 7);
                         break;
                     }
-                        
+
                     default: {
-                        lessThen.setDate(todayDate.getDate() + 1)
+                        lessThen.setDate(todayDate.getDate() + 1);
                         break;
                     }
                 }
@@ -633,17 +633,17 @@ newsRouter.route("/popular/:period/:isCategoryWise/:threshold")
                     }
 
                     case "PREVIOUS_WEEK": {
-                        greaterThen.setDate(todayDate.getDate() - 14)
+                        greaterThen.setDate(todayDate.getDate() - 14);
                         break;
                     }
 
                     case "THIS_MONTH": {
-                        greaterThen.setMonth(todayDate.getMonth() - 1)
+                        greaterThen.setMonth(todayDate.getMonth() - 1);
                         break;
                     }
 
                     default: {
-                        greaterThen.setDate(todayDate.getDate() - 7)
+                        greaterThen.setDate(todayDate.getDate() - 7);
                         break;
                     }
                 }

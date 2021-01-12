@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTachometerAlt, faExclamationTriangle, faUser, faUserEdit } from '@fortawesome/free-solid-svg-icons';
+import { faTachometerAlt, faExclamationTriangle, faUser, faUserEdit, faAsterisk } from '@fortawesome/free-solid-svg-icons';
 import { UserContext } from '../context/UserContext';
 import { toast } from 'react-toastify';
 import { Redirect } from 'react-router-dom';
@@ -391,9 +391,11 @@ class EditProfile extends Component {
                                                     :
                                                     <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto" src={DefaultImage} alt={`App default avatar of ${user.fullName}`} />
                                             }
+                                            <p className="text-danger asterisk-info">Field Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
+
                                             <form method="post" onSubmit={this.onSubmit} encType="multipart/form-data">
                                                 <div className="form-group">
-                                                    <label htmlFor="fullName">FULL NAME</label>
+                                                    <label htmlFor="fullName">FULL NAME <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                     <input type="text" name="fullName" onChange={this.onChange} onFocus={this.onInputFocus} onBlur={this.onInputBlur} placeholder="YOUR NAME" value={fullName} className={"form-control rounded-0 " + (errors.fullName ? "is-invalid" : "")} />
                                                     <div className="invalid-feedback">
                                                         <span>{errors.fullName}</span>
@@ -401,7 +403,7 @@ class EditProfile extends Component {
                                                 </div>
 
                                                 <div className="form-group">
-                                                    <label htmlFor="phone">PHONE</label>
+                                                    <label htmlFor="phone">PHONE <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                     <input type="number" name="phone" onChange={this.onChange} onFocus={this.onInputFocus} onBlur={this.onInputBlur} value={phone} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} />
                                                     <div className="invalid-feedback">
                                                         <span>{errors.phone}</span>

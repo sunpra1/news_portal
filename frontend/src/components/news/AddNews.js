@@ -233,7 +233,7 @@ export default class AddNews extends Component {
                         errors.error = error.response.data.message;
                     }
                 } else {
-                    errors.error = "Unable to log you out";
+                    errors.error = "Unable to add news";
                 }
                 this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
@@ -308,7 +308,7 @@ export default class AddNews extends Component {
                                 </div>
                                 <div className="col mx-auto card-body rounded-0 p-0">
                                     <div className="card-body">
-                                        <p className="text-danger asterisk-info">Fileld Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
+                                        <p className="text-danger asterisk-info">Field Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
                                         <form onSubmit={this.onSubmit} method="post" encType="multipart/form-data">
                                             <div className="form-group">
                                                 <label htmlFor="category" className="text-info">CATEGORY <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>

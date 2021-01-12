@@ -244,7 +244,7 @@ export default class Register extends Component {
                                 <h5 className="modal-title text-info">REGISTRATION FORM</h5>
                             </div>
                             <div className="card-body p-3">
-                                <p className="text-danger asterisk-info">Fileld Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
+                                <p className="text-danger asterisk-info">Field Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
                                 <form onSubmit={this.onFormSubmit} method="post">
                                     <div className="form-group">
                                         <label htmlFor="fullName" className="text-info">FULL NAME <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>

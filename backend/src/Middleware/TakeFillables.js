@@ -23,7 +23,7 @@ const TakeNewsSchemaFillable = (req, res, next) => {
             delete req.body[key];
         else
             if (key == "tags" && !(req.body.tags instanceof Array) && typeof req.body.tags == "string")
-                req.body.tags = req.body.tags.split(",").map(tag => Validator.trim(tag).replace(" ", "_"));
+                req.body.tags = req.body.tags.split(",").map(tag => Validator.trim(tag).toLowerCase().replace(" ", "_"));
     });
     next();
 };
