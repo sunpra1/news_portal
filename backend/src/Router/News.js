@@ -28,8 +28,8 @@ newsRouter.route("/")
 
                     if (req.files && req.files.length > 0) {
                         news.images = await Promise.all(req.files.map(async file => new Image({
-                            mimetype: "image/png",
-                            buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
+                            mimetype: "image/jpeg",
+                            buffer: await Sharp(file.buffer).jpeg({ quality: 48 }).toBuffer()
                         })));
                     }
                     user.news.push(news.id);
@@ -387,10 +387,10 @@ newsRouter.route("/:newsID")
             }
 
             if (req.files && req.files.length > 0) {
-                news.images = req.files.map(async file => new Image({
-                    mimetype: "image/png",
-                    buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
-                }));
+                news.images = await Promise.all(req.files.map(async file => new Image({
+                    mimetype: "image/jpeg",
+                    buffer: await Sharp(file.buffer).jpeg({ quality: 48 }).toBuffer()
+                })));
             }
             Object.keys(req.body).forEach(key => news[key] = req.body[key]);
             await news.save();
@@ -488,13 +488,34 @@ newsRouter.route("/:newsID/comments/:commentID/toggleApprove")
         }
     });
 
-newsRouter.route("/:newsID/increaseView")
+newsRouter.route("/:newsID/increaseViews")
     .put(async (req, res, next) => {
         const validationErrors = increaseNewsViewData(req.params);
         if (Object.keys(validationErrors).length == 0) {
             const news = await News.findById(req.params.newsID);
             if (news) {
                 news.views = news.views + 1;
+                await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
+                await news.save();
+                res.send(news);
+            } else {
+                const error = new Error("News with id: " + req.params.newsID + " not found");
+                error.statusCode = 400;
+                next(error);
+            }
+        } else {
+            res.status(400).send({ message: validationErrors });
+        }
+    });
+
+newsRouter.route("/:newsID/increaseShares")
+    .put(async (req, res, next) => {
+        const validationErrors = increaseNewsViewData(req.params);
+        if (Object.keys(validationErrors).length == 0) {
+            const news = await News.findById(req.params.newsID);
+            if (news) {
+                news.shares = news.shares + 1;
+                await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
                 await news.save();
                 res.send(news);
             } else {

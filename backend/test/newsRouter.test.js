@@ -350,7 +350,7 @@ describe("Testing routes on news router", () => {
     test("Should not increase view of news with id that doesn't exist", async () => {
         const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
         const expectedMessage = "News with id: " + idThatDoesntExist + " not found";
-        const increaseNewsViewRes = await Request.put("/news/" + idThatDoesntExist + "/increaseView");
+        const increaseNewsViewRes = await Request.put("/news/" + idThatDoesntExist + "/increaseViews");
 
         expect(increaseNewsViewRes.statusCode).toBe(400);
         expect(increaseNewsViewRes.body.message).toBe(expectedMessage);
@@ -359,7 +359,7 @@ describe("Testing routes on news router", () => {
     test("Should not increase view of news with invalid id", async () => {
         const invalidID = "Invalid ID";
         const expectedMessage = "Provide valid id for route parameter newsID";
-        const increaseNewsViewRes = await Request.put("/news/" + invalidID + "/increaseView");
+        const increaseNewsViewRes = await Request.put("/news/" + invalidID + "/increaseViews");
 
         expect(increaseNewsViewRes.statusCode).toBe(400);
         expect(increaseNewsViewRes.body.message.newsID).toBe(expectedMessage);
@@ -367,7 +367,7 @@ describe("Testing routes on news router", () => {
 
     test("Should increase view of news", async () => {
         const newsDetailsBeforeIncreasingViewCount = await Request.get("/news/" + newsId);
-        const increaseNewsViewRes = await Request.put("/news/" + newsId + "/increaseView");
+        const increaseNewsViewRes = await Request.put("/news/" + newsId + "/increaseViews");
         expect(increaseNewsViewRes.statusCode).toBe(200);
         expect(Number(increaseNewsViewRes.body.views)).toBe(Number(newsDetailsBeforeIncreasingViewCount.body.views) + 1);
     });
@@ -375,19 +375,23 @@ describe("Testing routes on news router", () => {
     test("Should not react on news with id that doesn't exist", async () => {
         const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
         const expectedMessage = "News with id: " + idThatDoesntExist + " not found";
-        const newsReactResponse = await Request.put("/news/" + idThatDoesntExist + "/increaseView");
+        const reactNewsResponse = await Request.post("/news/" + idThatDoesntExist + "/reacts")
+            .set("authorization", adminToken)
+            .send(newReact);
 
-        expect(newsReactResponse.statusCode).toBe(400);
-        expect(newsReactResponse.body.message).toBe(expectedMessage);
+        expect(reactNewsResponse.statusCode).toBe(400);
+        expect(reactNewsResponse.body.message).toBe(expectedMessage);
     });
 
     test("Should not react on view of news with invalid id", async () => {
         const invalidID = "Invalid ID";
         const expectedMessage = "Provide valid id for route parameter newsID";
-        const newsReactResponse = await Request.put("/news/" + invalidID + "/increaseView");
+        const reactNewsResponse = await Request.post("/news/" + invalidID + "/reacts")
+            .set("authorization", adminToken)
+            .send(newReact);
 
-        expect(newsReactResponse.statusCode).toBe(400);
-        expect(newsReactResponse.body.message.newsID).toBe(expectedMessage);
+        expect(reactNewsResponse.statusCode).toBe(400);
+        expect(reactNewsResponse.body.message.newsID).toBe(expectedMessage);
     });
 
     test("Should add react on news", async () => {

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faExclamationTriangle, faNewspaper } from '@fortawesome/free-solid-svg-icons';
 import { UserContext } from '../context/UserContext';
 import Axios from 'axios';
 import './CSS.css';
@@ -10,7 +10,6 @@ import { BaseURL } from '../utils/Constant';
 import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
-import NewsPaper from './NewsPaper.png';
 import { getImageBuffer } from '../utils/ImageHandler';
 
 class Navbar extends Component {
@@ -76,7 +75,7 @@ class Navbar extends Component {
                     <button className="navbar-toggler rounded-0" type="button" data-toggle="collapse" data-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
                         <FontAwesomeIcon className="navbar-toggler-icon text-light" icon={faBars} />
                     </button>
-                    <Link to="/" className="navbar-brand app-title text-light"> <img src={NewsPaper} alt="Logo of news portal" style={{ width: "85px" }} /> NEWS PORTAL</Link>
+                    <Link to="/" className="navbar-brand app-title text-light"> <FontAwesomeIcon icon={ faNewspaper} /> NEWS PORTAL</Link>
 
                     <div className="collapse navbar-collapse" id="navbarToggler">
                         {

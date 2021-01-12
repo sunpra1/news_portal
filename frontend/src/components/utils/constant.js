@@ -1,5 +1,5 @@
-// const BaseURL = "https://news-portal-api-server.herokuapp.com/";
-const BaseURL = "http://192.168.0.100:5000/";
+const BaseURL = "https://news-portal-api-server.herokuapp.com/";
+// const BaseURL = "http://192.168.0.100:5000/";
 const PopularityThreshold = 1000;
 const CSSColorNames = [
     "AliceBlue",

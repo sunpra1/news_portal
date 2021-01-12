@@ -43,7 +43,7 @@ export default class UserProvider extends Component {
       } else {
         this.setState({ user: null });
       }
-    }, 30000);
+    }, 60000);
   };
 
   componentDidMount = () => {

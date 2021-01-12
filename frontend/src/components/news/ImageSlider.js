@@ -13,7 +13,6 @@ export default class ImageSlider extends Component {
     }
 
     onLeftArrowClick = () => {
-        console.log("l clicked");
         let { imagePosition } = this.state;
         const totalImages = this.props.images.length;
         if (totalImages > 0) {
