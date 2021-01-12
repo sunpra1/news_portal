@@ -65,12 +65,41 @@ const userSchema = Mongoose.Schema({
     news: [{
         type: Mongoose.Schema.Types.ObjectId,
         ref: "News"
-    }]
+    }],
+    facebook: {
+        type: String,
+        trim: true,
+        validate: {
+            validator: value => Validator.isURL(value),
+            message: prop => `${prop.value} is not a valid URL for facebook`
+        }
+    },
+    instagram: {
+        type: String,
+        trim: true,
+        validate: {
+            validator: value => Validator.isURL(value),
+            message: prop => `${prop.value} is not a valid URL for instagram`
+        }
+    },
+    twitter: {
+        type: String,
+        trim: true,
+        validate: {
+            validator: value => Validator.isURL(value),
+            message: prop => `${prop.value} is not a valid URL for twitter`
+        }
+    },
+    about: {
+        type: String,
+        trim: true,
+        minlength: 50
+    }
 }, {
     timestamps: true
 });
 
-userSchema.statics.fillable = ["fullName", "gender", "dob", "address", "phone", "password", "role"];
+userSchema.statics.fillable = ["fullName", "gender", "dob", "address", "phone", "password", "role", "facebook", "instagram", "twitter", "about"];
 
 userSchema.pre('save', async function (next) {
 

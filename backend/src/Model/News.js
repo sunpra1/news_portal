@@ -36,6 +36,11 @@ const newsSchema = Mongoose.Schema({
         type: Number,
         default: 0
     },
+    tags: [{
+        type: String,
+        trim: true,
+        lowercase: true
+    }],
     comments: [commentSchema],
     reacts: [newsReactSchema]
 }, {
@@ -43,7 +48,7 @@ const newsSchema = Mongoose.Schema({
 });
 
 newsSchema.pre('save', async function (next) {
-    if (this.isNew) { 
+    if (this.isNew) {
         const summary = await Summary.findById(1);
         summary.newsCount = summary.newsCount + 1;
         await summary.save();

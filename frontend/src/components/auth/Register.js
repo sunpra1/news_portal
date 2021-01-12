@@ -3,7 +3,7 @@ import { Redirect } from 'react-router-dom';
 import Axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faLock, faPhone, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faLock, faPhone, faExclamationTriangle, faAsterisk } from '@fortawesome/free-solid-svg-icons';
 import { BaseURL } from '../utils/Constant';
 import Validator from 'validator';
 import Footer from '../layout/Footer';
@@ -157,7 +157,7 @@ export default class Register extends Component {
             fullName: this.state.fullName,
             phone: this.state.phone,
             password: this.state.password,
-            role: "ADMIN",
+            role: "AUTHOR",
             confirm_password: this.state.confirm_password
         };
 
@@ -244,9 +244,10 @@ export default class Register extends Component {
                                 <h5 className="modal-title text-info">REGISTRATION FORM</h5>
                             </div>
                             <div className="card-body p-3">
+                                <p className="text-danger asterisk-info">Fileld Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
                                 <form onSubmit={this.onFormSubmit} method="post">
                                     <div className="form-group">
-                                        <label htmlFor="fullName" className="text-info">FULL NAME</label>
+                                        <label htmlFor="fullName" className="text-info">FULL NAME <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faUser} /> </span>
@@ -259,7 +260,7 @@ export default class Register extends Component {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="phone" className="text-info">Phone</label>
+                                        <label htmlFor="phone" className="text-info">Phone <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faPhone} /> </span>
@@ -272,7 +273,7 @@ export default class Register extends Component {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="passeord" className="text-info">PASSWORD</label>
+                                        <label htmlFor="passeord" className="text-info">PASSWORD <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
@@ -285,7 +286,7 @@ export default class Register extends Component {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="confirm_password" className="text-info">CONFIEM PASSWORD</label>
+                                        <label htmlFor="confirm_password" className="text-info">CONFIEM PASSWORD <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>

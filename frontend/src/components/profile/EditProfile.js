@@ -14,6 +14,7 @@ import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import { getImageBuffer } from '../utils/ImageHandler';
+import Validator from 'validator';
 
 class EditProfile extends Component {
     static contextType = UserContext;
@@ -25,6 +26,10 @@ class EditProfile extends Component {
             gender: "0",
             dob: "",
             address: "",
+            facebook: "",
+            instagram: "",
+            twitter: "",
+            about: "",
             password: "",
             cpassword: "",
             image: null,
@@ -109,6 +114,22 @@ class EditProfile extends Component {
                 data.append("phone", stateValues.phone);
             }
 
+            if (stateValues.facebook) {
+                data.append("facebook", stateValues.facebook);
+            }
+
+            if (stateValues.instagram) {
+                data.append("instagram", stateValues.instagram);
+            }
+
+            if (stateValues.twitter) {
+                data.append("twitter", stateValues.twitter);
+            }
+
+            if (stateValues.about) {
+                data.append("about", stateValues.about);
+            }
+
             if (stateValues.password) {
                 data.append("password", stateValues.password);
             }
@@ -145,12 +166,6 @@ class EditProfile extends Component {
         }
     };
 
-    onPasswordFocus = () => {
-        let { errors } = this.state;
-        delete errors.password;
-        this.setState({ errors });
-    };
-
     onPasswordBlur = () => {
         let { errors, password, cpassword } = this.state;
 
@@ -170,12 +185,6 @@ class EditProfile extends Component {
         this.setState({ errors });
     };
 
-    onConfirmPasswordFocus = () => {
-        let { errors } = this.state;
-        delete errors.cpassword;
-        this.setState({ errors });
-    };
-
     onConfirmPasswordBlur = () => {
         let { errors, password, cpassword } = this.state;
         if (!cpassword) {
@@ -192,7 +201,93 @@ class EditProfile extends Component {
             }
         }
         this.setState({ errors });
+    };
 
+    onInputFocus = (e) => {
+        const { errors } = this.state;
+        delete errors[e.target.name];
+        this.setState({ errors });
+    };
+
+    validatePhoneNumber = phone => {
+        this.setState({ isRequestComplete: false });
+        Axios({
+            method: "post",
+            url: `${BaseURL}users/validate-unique-user`,
+            data: { phone }
+        }).then(result => {
+            this.setState({ isRequestComplete: true });
+            if (!result.data.isUnique) {
+                this.setState({ errors: { phone: "Phone number is already taken" } });
+            } else {
+                const { errors } = this.state;
+                if (errors.phone) {
+                    delete errors.phone;
+                }
+                this.setState({ errors });
+            }
+        }).catch(error => {
+            let { errors } = this.state;
+            if (error.response && error.response.data.message) {
+                if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
+                    errors = error.response.data.message;
+                } else {
+                    errors.error = error.response.data.message;
+                }
+            } else {
+                errors.error = "Unable to verify the phone number";
+            }
+            this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+        });
+    };
+
+    onInputBlur = (e) => {
+        const { errors } = this.state;
+        const value = Validator.trim(e.target.value);
+        const name = e.target.name;
+
+        console.log(name, value);
+        switch (name) {
+            case "fullName": {
+                if (!value || value.length === 0) {
+                    errors[name] = "Full name is required";
+                }
+                break;
+            }
+            case "phone": {
+                if (!value || value.length === 0) {
+                    errors[name] = "Phone number is required";
+                } else if (!Validator.isNumeric(value)) {
+                    errors[name] = "Phone number must be numeric value";
+                } else if (value.length !== 10) {
+                    errors[name] = "Phone number must be 10 characters long";
+                } else if (this.context.user.phone.toString() !== value) {
+                    this.validatePhoneNumber(value);
+                }
+                break;
+            }
+            case "about": {
+                if (value && value.length < 50) {
+                    errors[name] = "About must be at least 50 characters long";
+                }
+                break;
+            }
+            case "facebook":
+            case "twitter":
+            case "instagram": {
+                if (value && Validator.trim(value).length > 0) {
+                    if (!Validator.isURL(Validator.trim(value)))
+                        errors[name] = "Invalid URL provided";
+                    else if (Validator.trim(value).indexOf(name) < 0)
+                        errors[name] = `Invalid ${name} URL provided`;
+                }
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        this.setState({ errors });
     };
 
     validate = (data) => {
@@ -205,6 +300,25 @@ class EditProfile extends Component {
             } else if ((data.newImage.size / (1024 * 1024)) > 2) {
                 errors.newImage = "File size cannot be more then 2 MB";
             }
+        }
+
+        if (data.facebook && Validator.trim(data.facebook).length > 0) {
+            if (!Validator.isURL(Validator.trim(data.facebook))) errors.facebook = "Invalid URL provided";
+            else if (Validator.trim(data.facebook).indexOf("facebook") < 0) errors.facebook = "Invalid facebook URL provided";
+        }
+
+        if (data.twitter && Validator.trim(data.twitter).length > 0) {
+            if (!Validator.isURL(Validator.trim(data.twitter))) errors.twitter = "Invalid URL provided";
+            else if (Validator.trim(data.twitter).indexOf("twitter") < 0) errors.twitter = "Invalid twitter URL provided";
+        }
+
+        if (data.instagram && Validator.trim(data.instagram).length > 0) {
+            if (!Validator.isURL(Validator.trim(data.instagram))) errors.instagram = "Invalid URL provided";
+            else if (Validator.trim(data.instagram).indexOf("instagram") < 0) errors.instagram = "Invalid instagram URL provided";
+        }
+
+        if (data.about && Validator.trim(data.about).length < 50) {
+            errors.about = "About must be at least 50 characters long";
         }
 
         if (data.password && !data.cpassword) {
@@ -229,21 +343,23 @@ class EditProfile extends Component {
     };
 
     componentDidMount = () => {
-        let { fullName, gender, phone, address, dob } = this.context.user;
+        let { fullName, gender, phone, address, dob, facebook, instagram, twitter, about } = this.context.user;
         fullName = fullName ? fullName : "";
         gender = gender ? gender : "0";
         phone = phone ? phone : "";
         address = address ? address : "";
         dob = dob ? dob.substring(0, 10) : "";
-        this.setState({ fullName, gender, dob, phone, address });
+        facebook = facebook ? facebook : "";
+        instagram = instagram ? instagram : "";
+        twitter = twitter ? twitter : "";
+        about = about ? about : "";
+        this.setState({ fullName, gender, dob, phone, address, facebook, instagram, twitter, about });
     };
 
     render() {
         const { user } = this.context;
-        const { fullName, phone, gender, dob, address, errors, dialog, isRequestComplete } = this.state;
-        if (!user) {
-            return <Redirect to="/" />;
-        }
+        const { fullName, phone, gender, dob, address, errors, dialog, isRequestComplete, facebook, twitter, instagram, about } = this.state;
+        if (!user) return <Redirect to="/" />;
 
         return (
             <>
@@ -278,7 +394,7 @@ class EditProfile extends Component {
                                             <form method="post" onSubmit={this.onSubmit} encType="multipart/form-data">
                                                 <div className="form-group">
                                                     <label htmlFor="fullName">FULL NAME</label>
-                                                    <input type="text" name="fullName" onChange={this.onChange} placeholder="YOUR NAME" value={fullName} className={"form-control rounded-0 " + (errors.fullName ? "is-invalid" : "")} />
+                                                    <input type="text" name="fullName" onChange={this.onChange} onFocus={this.onInputFocus} onBlur={this.onInputBlur} placeholder="YOUR NAME" value={fullName} className={"form-control rounded-0 " + (errors.fullName ? "is-invalid" : "")} />
                                                     <div className="invalid-feedback">
                                                         <span>{errors.fullName}</span>
                                                     </div>
@@ -286,7 +402,7 @@ class EditProfile extends Component {
 
                                                 <div className="form-group">
                                                     <label htmlFor="phone">PHONE</label>
-                                                    <input type="number" name="phone" onChange={this.onChange} value={phone} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} />
+                                                    <input type="number" name="phone" onChange={this.onChange} onFocus={this.onInputFocus} onBlur={this.onInputBlur} value={phone} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} />
                                                     <div className="invalid-feedback">
                                                         <span>{errors.phone}</span>
                                                     </div>
@@ -341,6 +457,38 @@ class EditProfile extends Component {
                                                     <input type="password" name="cpassword" onChange={this.onChange} onFocus={this.onConfirmPasswordFocus} onBlur={this.onConfirmPasswordBlur} placeholder="CONFIRM YOUR PASSWORD" className={"form-control rounded-0 " + (errors.cpassword ? "is-invalid" : "")} autoComplete="false" />
                                                     <div className="invalid-feedback">
                                                         <span>{errors.cpassword}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label htmlFor="facebook">FACEBOOK LINK</label>
+                                                    <input type="text" name="facebook" value={facebook} onChange={this.onChange} onFocus={this.onInputFocus} onBlur={this.onInputBlur} placeholder="YOUR FACEBOOK LINK" className={"form-control rounded-0 " + (errors.facebook ? "is-invalid" : "")} autoComplete="false" />
+                                                    <div className="invalid-feedback">
+                                                        <span>{errors.facebook}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label htmlFor="instagram">INSTAGRAM LINK</label>
+                                                    <input type="text" name="instagram" value={instagram} onChange={this.onChange} onFocus={this.onInputFocus} onBlur={this.onInputBlur} placeholder="YOUR INSTAGRAM LINK" className={"form-control rounded-0 " + (errors.instagram ? "is-invalid" : "")} autoComplete="false" />
+                                                    <div className="invalid-feedback">
+                                                        <span>{errors.instagram}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label htmlFor="twitter">TWITTER LINK</label>
+                                                    <input type="text" name="twitter" value={twitter} onChange={this.onChange} onFocus={this.onInputFocus} onBlur={this.onInputBlur} placeholder="YOUR TWITTER LINK" className={"form-control rounded-0 " + (errors.twitter ? "is-invalid" : "")} autoComplete="false" />
+                                                    <div className="invalid-feedback">
+                                                        <span>{errors.twitter}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label htmlFor="about">ABOUT YOU</label>
+                                                    <textarea rows="5" name="about" value={about} onChange={this.onChange} onFocus={this.onInputFocus} onBlur={this.onInputBlur} placeholder="YOUR TWITTER LINK" className={"form-control rounded-0 " + (errors.about ? "is-invalid" : "")} autoComplete="false" />
+                                                    <div className="invalid-feedback">
+                                                        <span>{errors.about}</span>
                                                     </div>
                                                 </div>
 

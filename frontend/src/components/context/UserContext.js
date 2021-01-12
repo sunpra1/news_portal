@@ -29,7 +29,9 @@ export default class UserProvider extends Component {
             authorization: token
           }
         }).then(result => {
-          this.setState({ user: result.data });
+          if (this.state.user.role !== result.data.role) {
+            this.setState({ user: result.data });
+          }
         }).catch(e => {
           if (e.response && e.response.data.message) {
             if (e.response.status && e.response.status === 401) {
@@ -41,7 +43,7 @@ export default class UserProvider extends Component {
       } else {
         this.setState({ user: null });
       }
-    }, 15000);
+    }, 30000);
   };
 
   componentDidMount = () => {

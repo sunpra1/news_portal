@@ -8,7 +8,7 @@ import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import User from './user.png';
 import DateFormat from 'dateformat';
-import './news.css';
+import './css.css';
 import ReactHtmlParser from 'react-html-parser';
 import Comments from './Comments';
 import ImageSlider from './ImageSlider';

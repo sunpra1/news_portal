@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLock, faPhone, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faPhone, faExclamationTriangle, faAsterisk } from '@fortawesome/free-solid-svg-icons';
 import { Redirect } from 'react-router-dom';
 import { BaseURL } from '../utils/Constant';
 import Navbar from '../layout/Navbar';
@@ -127,9 +127,10 @@ export default class Login extends Component {
                             </div>
 
                             <div className="card-body">
+                                <p className="text-danger asterisk-info">Fileld Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
                                 <form onSubmit={this.onSubmit} method="post">
                                     <div className="form-group">
-                                        <label htmlFor="phone" className="text-info">PHONE</label>
+                                        <label htmlFor="phone" className="text-info">PHONE <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"><FontAwesomeIcon icon={faPhone} /> </span>
@@ -142,7 +143,7 @@ export default class Login extends Component {
                                     </div>
 
                                     <div className="form-group">
-                                        <label htmlFor="password" className="text-info">PASSWORD</label>
+                                        <label htmlFor="password" className="text-info">PASSWORD <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                         <div className="input-group">
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>

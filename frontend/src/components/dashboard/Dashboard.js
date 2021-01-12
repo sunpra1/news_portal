@@ -188,8 +188,8 @@ class Dashboard extends Component {
                                                 <div className="col-12 mb-3">
                                                     <h5 className="text-info">SUMMARY</h5>
                                                 </div>
-                                                <div className="col-10 mx-auto p-0">
-                                                    <div className="row d-flex justify-content-around my-3 box-shadow">
+                                                <div className="col-md-10 col-sm-12 mx-auto p-0">
+                                                    <div className="row d-flex justify-content-around my-3 box-shadow-md">
                                                         <div className="col-md-3 m-3 m-md-1 my-md-4 border border-success bg-success">
                                                             <div className="row text-light">
                                                                 <div className="col-sm-4 p-2">
@@ -276,11 +276,11 @@ class Dashboard extends Component {
                                                     <h5 className="text-info">INSIGHTS</h5>
                                                 </div>
 
-                                                <div className="col-10 mx-auto p-0">
+                                                <div className="col-md-10 col-sm-12 mx-auto p-0">
                                                     <div className="row d-flex justify-content-center">
 
                                                         <div className="col-12 p-0">
-                                                            <div className="col card box-shadow rounded-0">
+                                                            <div className="col card box-shadow-md rounded-0">
                                                                 <div className="card-header rounded-0 bg-info">
                                                                     <h6 className="text-light text-justify">CHART DEMONSTRATING EACH CATEGORY WIGHTAGE ON TOTAL NEWS</h6>
                                                                 </div>
@@ -316,7 +316,7 @@ class Dashboard extends Component {
 
 
                                                         <div className="col-12 mt-5 p-0">
-                                                            <div className="col card box-shadow rounded-0">
+                                                            <div className="col card box-shadow-md rounded-0">
                                                                 <div className="card-header rounded-0 bg-info">
                                                                     <h6 className="text-light text-justify">COMPARISON BETWEEN THIS AND PREVIOUS WEEK ON WHICH CATEGORY'S NEWS WAS MORE PREFERRED BY USERS </h6>
                                                                 </div>
@@ -362,7 +362,7 @@ class Dashboard extends Component {
                                                         </div>
 
                                                         <div className="col-12 p-0 mt-5">
-                                                            <div className="col card box-shadow rounded-0">
+                                                            <div className="col card box-shadow-md rounded-0">
                                                                 <div className="card-header rounded-0 bg-info">
                                                                     <h6 className="text-light text-justify">COMPARISON BETWEEN THIS AND PREVIOUS MONTH ON WHICH CATEGORY'S NEWS WAS MORE PREFERRED BY USERS </h6>
                                                                 </div>
@@ -409,7 +409,7 @@ class Dashboard extends Component {
 
 
                                                         <div className="col-12 p-0 mt-5">
-                                                            <div className="col card box-shadow rounded-0">
+                                                            <div className="col card box-shadow-md rounded-0">
                                                                 <div className="card-header rounded-0 bg-info">
                                                                     <h6 className="text-light text-justify">POPULAR NEWS THIS WEEK</h6>
                                                                 </div>
@@ -420,7 +420,7 @@ class Dashboard extends Component {
                                                         </div>
 
                                                         <div className="col-12 p-0 mt-5">
-                                                            <div className="col card box-shadow rounded-0">
+                                                            <div className="col card box-shadow-md rounded-0">
                                                                 <div className="card-header rounded-0 bg-info">
                                                                     <h6 className="text-light text-justify">POPULAR NEWS THIS MONTH</h6>
                                                                 </div>

@@ -8,7 +8,7 @@ export default class Sidebar extends Component {
         const { user } = this.context;
         return (
             <div className="col p-0 sidebar hide-scrollbar">
-                <ul className="list-group py-2 pr-4 pl-2 rounded-0">
+                <ul className="list-group p-4 rounded-0 d-flex justify-content-center">
                     <li className="list-group-item border-0 box-shadow mb-3"><Link className="text-light d-block" to="/" >DASHBOARD</Link></li>
                     {
                         user && user.role === "ADMIN" && <li className="list-group-item border-0 box-shadow mb-3"><Link className="text-light d-block" to="/categories" >CATEGORY</Link></li>

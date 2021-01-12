@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faImage, faTimes, faNewspaper, faTachometerAlt, faPenAlt, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faImage, faTimes, faNewspaper, faTachometerAlt, faPenAlt, faExclamationTriangle, faAsterisk } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import { BaseURL } from '../utils/Constant';
 import ReactQuill from 'react-quill';
@@ -16,6 +16,7 @@ import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 import { UserContext } from '../context/UserContext';
 import { Redirect } from 'react-router-dom';
+import { getImageBuffer } from '../utils/ImageHandler';
 
 export default class UpdateNews extends Component {
     static contextType = UserContext;
@@ -27,6 +28,7 @@ export default class UpdateNews extends Component {
             categories: [],
             title: "",
             description: "",
+            tags: "",
             oldImages: [],
             images: [],
             category: "0",
@@ -208,7 +210,7 @@ export default class UpdateNews extends Component {
             stateValues.images.forEach(image => {
                 data.append("images", image.file);
             });
-
+            if (stateValues.tags) data.append("tags", stateValues.tags);
             Axios({
                 method: "put",
                 url: `${BaseURL}news/${stateValues.id}`,
@@ -219,7 +221,7 @@ export default class UpdateNews extends Component {
                 }
             }).then(result => {
                 const news = result.data;
-                this.setState({ news, id: news._id, category: news.category, title: news.title, description: news.description, oldImages: news.images, images: [], errors: {}, isRequestComplete: true });
+                this.setState({ news, id: news._id, category: news.category, title: news.title, description: news.description, tags: news.tags.toString(), oldImages: news.images, images: [], errors: {}, isRequestComplete: true });
                 toast.success("News updated successfully");
             }).catch(error => {
                 let { errors } = this.state;
@@ -265,7 +267,7 @@ export default class UpdateNews extends Component {
                 method: 'get',
                 url: `${BaseURL}categories`
             }).then(result => {
-                this.setState({ news, categories: result.data, id: news._id, category: news.category._id, title: news.title, description: news.description, oldImages: news.images, isRequestComplete: true });
+                this.setState({ news, categories: result.data, id: news._id, category: news.category._id, title: news.title, description: news.description, tags: news.tags.toString(), oldImages: news.images, isRequestComplete: true });
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
@@ -295,7 +297,7 @@ export default class UpdateNews extends Component {
 
                 const news = response[0].data;
                 const categories = response[1].data;
-                this.setState({ news, categories, id: news._id, category: news.category._id, title: news.title, description: news.description, oldImages: news.images, isRequestComplete: true });
+                this.setState({ news, categories, id: news._id, category: news.category._id, title: news.title, description: news.description, tags: news.tags.toString(), oldImages: news.images, isRequestComplete: true });
             } catch (error) {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
@@ -313,9 +315,9 @@ export default class UpdateNews extends Component {
     };
 
     render() {
-        const { news, errors, images, categories, oldImages, category, title, description, dialog, isRequestComplete } = this.state;
+        const { news, errors, images, categories, oldImages, category, title, description, tags, dialog, isRequestComplete } = this.state;
         const { user } = this.context;
-        if (user.role !== "ADMIN" && (news && news.author._id !== user._id)) return <Redirect to="/" />
+        if (user.role !== "ADMIN" && (news && news.author._id !== user._id)) return <Redirect to="/" />;
         return (
             <>
                 {
@@ -339,9 +341,10 @@ export default class UpdateNews extends Component {
 
                                         <div className="col mx-auto card-body rounded-0 p-0">
                                             <div className="card-body">
+                                                <p className="text-danger asterisk-info">Fileld Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
                                                 <form onSubmit={this.onSubmit} method="post" encType="multipart/form-data">
                                                     <div className="form-group">
-                                                        <label htmlFor="category" className="text-info">CATEGORY</label>
+                                                        <label htmlFor="category" className="text-info">CATEGORY <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                         <select id="category" value={category} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="category" className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} >
                                                             <option value="0" key="0" disabled>SELECT CATEGORY</option>
                                                             {
@@ -356,7 +359,7 @@ export default class UpdateNews extends Component {
                                                     </div>
 
                                                     <div className="form-group">
-                                                        <label htmlFor="title" className="text-info">TITLE</label>
+                                                        <label htmlFor="title" className="text-info">TITLE <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                         <input id="title" type="text" value={title} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="title" placeholder="PROVIDE TITLE OF NEWS" className={"form-control rounded-0 " + (errors.title ? "is-invalid" : "")} autoComplete="off" />
                                                         <div className="invalid-feedback">
                                                             <span>{errors.title}</span>
@@ -373,7 +376,7 @@ export default class UpdateNews extends Component {
                                                                         oldImages.map((image, position) => {
                                                                             return (
                                                                                 <div key={position}>
-                                                                                    <img src={`data:${image.mimetype};base64,${image.buffer}`} className="my-2 mr-2 p-1 border-success" style={{ height: "150px", width: "150px", border: "2px solid" }} alt={title} />
+                                                                                    <img src={`data:${image.mimetype};base64,${getImageBuffer(image)}`} className="my-2 mr-2 p-1 border-success" style={{ height: "150px", width: "150px", border: "2px solid" }} alt={title} />
                                                                                 </div>
                                                                             );
                                                                         })
@@ -420,11 +423,19 @@ export default class UpdateNews extends Component {
                                                     </div>
 
                                                     <div className="form-group">
-                                                        <label htmlFor="description" className="text-info">DESCRIPTION</label>
+                                                        <label htmlFor="description" className="text-info">DESCRIPTION <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                         <ReactQuill style={{ maxHeight: "55vh", overflowY: "scroll" }} id="description" modules={this.modules}
                                                             onChange={this.onTextEditorChange} onFocus={this.onTextEditorFocus} onBlur={this.onTextEditorBlur} value={description} placeholder="PROVIDE TITLE OF NEWS" className={"bg-light rounded-0 " + (errors.description ? "is-invalid" : "")} autoComplete="off" />
                                                         <div className="invalid-feedback">
                                                             <span>{errors.description}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="form-group">
+                                                        <label htmlFor="tags" className="text-info">TAGS</label>
+                                                        <input id="tags" type="text" value={tags} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="tags" placeholder="PROVIDE NEWS TAGS" className={"form-control rounded-0 " + (errors.tags ? "is-invalid" : "")} autoComplete="off" />
+                                                        <div className="invalid-feedback">
+                                                            <span>{errors.tags}</span>
                                                         </div>
                                                     </div>
 

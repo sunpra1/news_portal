@@ -8,6 +8,7 @@ import FS from 'fs';
 import Path from 'path';
 import { TakeUserSchemaFillable } from '../Middleware/TakeFillables.js';
 import Image from '../Model/Image.js';
+import Sharp from 'sharp';
 
 const userRouter = Express.Router();
 userRouter.route("/register")
@@ -124,16 +125,16 @@ userRouter.route("/profile")
                     next(error);
                 } else {
                     let user = req.user;
-                    if (user.email == req.body.email) {
-                        delete req.body.email;
-                    }
                     const validationErrors = updateUserData(req.body);
                     if (Object.keys(validationErrors).length == 0) {
                         if (req.body.password)
                             req.body.password = await Bcrypt.hash(req.body.password, 8);
 
                         if (req.file) {
-                            const image = new Image(req.file);
+                            const image = new Image(new Image({
+                                mimetype: "image/png",
+                                buffer: await Sharp(req.file.buffer).resize({ width: 150, height: 150 }).png().toBuffer()
+                            }));
                             user.image = image;
                         }
 

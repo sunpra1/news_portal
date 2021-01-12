@@ -11,6 +11,7 @@ import Comment from '../Model/Comment.js';
 import CommentReact from '../Model/CommentReact.js';
 import NewsReact from '../Model/NewsReact.js';
 import Image from '../Model/Image.js';
+import Sharp from 'sharp';
 
 const newsRouter = new Express.Router();
 
@@ -30,7 +31,10 @@ newsRouter.route("/")
                             news.author = user.id;
 
                             if (req.files && req.files.length > 0) {
-                                news.images = req.files.map(file => new Image(file));
+                                news.images = req.files.map(async file => new Image({
+                                    mimetype: "image/png",
+                                    buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
+                                }));
                             }
                             user.news.push(news.id);
                             await user.save();
@@ -393,7 +397,10 @@ newsRouter.route("/:newsID")
                     }
 
                     if (req.files && req.files.length > 0) {
-                        news.images = req.files.map(file => new Image(file));
+                        news.images = req.files.map(async file => new Image({
+                            mimetype: "image/png",
+                            buffer: await Sharp(file.buffer).resize({ width: 600, height: 400 }).png().toBuffer()
+                        }));
                     }
                     Object.keys(req.body).forEach(key => news[key] = req.body[key]);
                     await news.save();

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTachometerAlt, faUserPlus, faUserFriends, faPencilAlt, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faTachometerAlt, faUserPlus, faUserFriends, faPencilAlt, faExclamationTriangle, faAsterisk } from '@fortawesome/free-solid-svg-icons';
 import User from './user.png';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
@@ -13,6 +13,7 @@ import { UserContext } from '../context/UserContext';
 import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
+import { getImageBuffer } from '../utils/ImageHandler';
 
 export default class AddNews extends Component {
     static contextType = UserContext;
@@ -53,7 +54,7 @@ export default class AddNews extends Component {
     getUserDetails = value => {
         const loggedInUser = this.context.user;
         const { errors } = this.state;
-        if (loggedInUser.phone === value) {
+        if (loggedInUser.phone.toString() === value) {
             errors.phone = "Updation of own role is prohibited";
             this.setState({ errors });
         } else {
@@ -163,10 +164,10 @@ export default class AddNews extends Component {
                                                     <h6 className="text-info text-center">USER DETAILS</h6>
                                                 </div>
                                                 <div className="card-body">
-
+                                                    <p className="text-danger asterisk-info">Fileld Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
                                                     <form onSubmit={this.onSubmit} >
                                                         <div className="form-group">
-                                                            <label htmlFor="phone" className="text-info">PHONE</label>
+                                                            <label htmlFor="phone" className="text-info">PHONE  <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                             <input id="phone" type="number" value={phone} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="phone" placeholder="PROVIDE USER PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} autoComplete="off" />
                                                             <div className="invalid-feedback">
                                                                 <span>{errors.phone}</span>
@@ -177,7 +178,7 @@ export default class AddNews extends Component {
                                                             user && (
                                                                 <>
                                                                     <div className="form-group">
-                                                                        <label htmlFor="role" className="text-info">ROLE</label>
+                                                                        <label htmlFor="role" className="text-info">ROLE  <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                                         <select id="role" value={role} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="role" className={"form-control rounded-0 " + (errors.role ? "is-invalid" : "")} >
                                                                             <option value="USER" key="0">USER</option>
                                                                             <option value="AUTHOR" key="1">AUTHOR</option>
@@ -204,7 +205,7 @@ export default class AddNews extends Component {
                                                 <div className="col-md-5">
                                                     <div className="col card rounded-0 box-shadow" style={{ marginTop: "6vh" }}>
                                                         <div className="col d-flex justify-content-center" style={{ position: "relative" }}>
-                                                            <img src={user.image ? `${BaseURL}user.image` : User} alt="User whose role is being changed" className="img-thumbnail rounded-circle mx-auto" style={{ width: "12vh", height: "12vh", position: "absolute", top: "-6vh" }} />
+                                                            <img src={user.image ? `data:${user.image.mimetype};base64,${getImageBuffer(user.image)}` : User} alt="User whose role is being changed" className="img-thumbnail rounded-circle mx-auto" style={{ width: "12vh", height: "12vh", position: "absolute", top: "-6vh" }} />
                                                         </div>
 
                                                         <div className="card-header" style={{ marginTop: "6vh" }}>

@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTachometerAlt, faUserTie, faVenusMars, faSignOutAlt, faEnvelope, faHome, faCalendarAlt, faExclamationTriangle, faUserTag, faUser, faPencilAlt } from '@fortawesome/free-solid-svg-icons';
+import { faTachometerAlt, faUserTie, faVenusMars, faSignOutAlt, faEnvelope, faHome, faCalendarAlt, faExclamationTriangle, faUserTag, faUser, faPencilAlt, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { UserContext } from '../context/UserContext';
 import Axios from 'axios';
 import './CSS.css';
 import DefaultImage from './user.png';
+import Facebook from './facebook.png';
+import Instagram from './instagram.png';
+import Twitter from './twitter.png';
 import { BaseURL } from '../utils/Constant';
 import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
@@ -70,7 +73,7 @@ export default class Profile extends Component {
 
     render() {
 
-        const { fullName, phone, gender, dob, address, image, role } = this.context.user;
+        const { fullName, phone, gender, dob, address, image, role, facebook, instagram, twitter, about } = this.context.user;
         const { dialog, isRequestComplete } = this.state;
         if (!isRequestComplete) return <Loading />;
         return (
@@ -131,6 +134,22 @@ export default class Profile extends Component {
                                                             <tr>
                                                                 <td><FontAwesomeIcon className="mr-2" icon={faUserTag} /> Role</td>
                                                                 <td>{role ? role : "N/A"}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><img src={Facebook} alt="Facebook logo" style={{ height: "16px", width: "16px" }} /> Facebook</td>
+                                                                <td>{facebook ? facebook : "N/A"}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><img src={Instagram} alt="Instagram logo" style={{ height: "16px", width: "16px" }} /> Instagram</td>
+                                                                <td>{instagram ? instagram : "N/A"}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><img src={Twitter} alt="Twitter logo" style={{ height: "16px", width: "16px" }} /> Twitter</td>
+                                                                <td>{twitter ? twitter : "N/A"}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><FontAwesomeIcon className="mr-2" icon={faInfoCircle} /> About</td>
+                                                                <td>{about ? about : "N/A"}</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>

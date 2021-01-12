@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTachometerAlt, faBars, faPenAlt, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faTachometerAlt, faBars, faPenAlt, faExclamationTriangle, faAsterisk } from '@fortawesome/free-solid-svg-icons';
 import Axios from 'axios';
 import { toast } from 'react-toastify';
 import { BaseURL } from '../utils/Constant';
@@ -147,7 +147,7 @@ class UpdateCategory extends Component {
                                             <div className="card-body">
                                                 <form action="post" onSubmit={this.onSubmit} >
                                                     <div className="form-group">
-                                                        <label className="m-1" htmlFor="email">CATEGORY</label>
+                                                        <label className="m-1" htmlFor="email">CATEGORY <span className="text-danger asterisk-info"><FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} />Required</span></label>
                                                         <div className="m-1">
                                                             <input name="category" onChange={this.onChange} onBlur={this.onCategoryBlur} onFocus={this.onCategoryFocus} value={category} className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} />
                                                             <div className="invalid-feedback">

@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faImage, faPlusSquare, faTimes, faNewspaper, faTachometerAlt, faPlus, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
+import { faImage, faPlusSquare, faTimes, faNewspaper, faTachometerAlt, faPlus, faExclamationTriangle, faAsterisk } from '@fortawesome/free-solid-svg-icons';
 import { BaseURL } from '../utils/Constant';
 import ReactQuill from 'react-quill';
 import './wyswyg.css';
+import './css.css';
 import NoImage from './no_image_available.png';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
@@ -24,6 +25,7 @@ export default class AddNews extends Component {
             description: "",
             images: [],
             category: "0",
+            tags: "",
             errors: {},
             isRequestComplete: false,
             dialog: null
@@ -201,6 +203,7 @@ export default class AddNews extends Component {
             stateValues.images.forEach(image => {
                 data.append("images", image.file);
             });
+            if (stateValues.tags) data.append("tags", stateValues.tags);
 
             Axios({
                 method: "post",
@@ -280,7 +283,7 @@ export default class AddNews extends Component {
     };
 
     render() {
-        const { errors, images, categories, title, category, description, isRequestComplete, dialog } = this.state;
+        const { errors, images, categories, title, category, description, tags, isRequestComplete, dialog } = this.state;
         return (
             <>
                 {
@@ -290,7 +293,7 @@ export default class AddNews extends Component {
                 {
                     !isRequestComplete && <Loading />
                 }
-                
+
                 <Navbar />
                 <div className="container-fluid content-height">
                     <div className="row">
@@ -305,9 +308,10 @@ export default class AddNews extends Component {
                                 </div>
                                 <div className="col mx-auto card-body rounded-0 p-0">
                                     <div className="card-body">
+                                        <p className="text-danger asterisk-info">Fileld Marked With <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> Are Required. </p>
                                         <form onSubmit={this.onSubmit} method="post" encType="multipart/form-data">
                                             <div className="form-group">
-                                                <label htmlFor="category" className="text-info">CATEGORY</label>
+                                                <label htmlFor="category" className="text-info">CATEGORY <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                 <select id="category" value={category} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="category" className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} >
                                                     <option value="0" key="0" disabled>SELECT CATEGORY</option>
                                                     {
@@ -322,7 +326,7 @@ export default class AddNews extends Component {
                                             </div>
 
                                             <div className="form-group">
-                                                <label htmlFor="title" className="text-info">TITLE</label>
+                                                <label htmlFor="title" className="text-info">TITLE <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                 <input id="title" type="text" value={title} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="title" placeholder="PROVIDE TITLE OF NEWS" className={"form-control rounded-0 " + (errors.title ? "is-invalid" : "")} autoComplete="off" />
                                                 <div className="invalid-feedback">
                                                     <span>{errors.title}</span>
@@ -368,11 +372,19 @@ export default class AddNews extends Component {
                                             </div>
 
                                             <div className="form-group">
-                                                <label htmlFor="description" className="text-info">DESCRIPTION</label>
+                                                <label htmlFor="description" className="text-info">DESCRIPTION <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
                                                 <ReactQuill style={{ maxHeight: "55vh", overflowY: "scroll" }} id="description" modules={this.modules}
                                                     onChange={this.onTextEditorChange} onFocus={this.onTextEditorFocus} onBlur={this.onTextEditorBlur} value={description} placeholder="PROVIDE TITLE OF NEWS" className={"bg-light rounded-0 " + (errors.description ? "is-invalid" : "")} autoComplete="off" />
                                                 <div className="invalid-feedback">
                                                     <span>{errors.description}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="form-group">
+                                                <label htmlFor="tags" className="text-info">TAGS</label>
+                                                <input id="tags" type="text" value={tags} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="tags" placeholder="PROVIDE NEWS TAGS" className={"form-control rounded-0 " + (errors.tags ? "is-invalid" : "")} autoComplete="off" />
+                                                <div className="invalid-feedback">
+                                                    <span>{errors.tags}</span>
                                                 </div>
                                             </div>
 
