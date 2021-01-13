@@ -70,7 +70,7 @@ class Dialog extends Component {
                     </div>
                     <div className="card-footer d-flex justify-content-end">
                         {
-                            negativeButton && negativeButton.text && <button onClick={this.onNegativeButtonClicked} className="btn btn-danger btn-sm rounded-0 mr-2">{negativeButton.text}</button>
+                            negativeButton && negativeButton.text && <button onClick={this.onNegativeButtonClicked} className="btn btn-danger btn-sm rounded-0 mr-2" style={{ minWidth: "100px" }}>{negativeButton.text}</button>
                         }
                         {
                             (positiveButton && positiveButton.text)

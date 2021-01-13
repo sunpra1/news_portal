@@ -20,16 +20,20 @@ const categorySchema = Mongoose.Schema({
 categorySchema.pre('save', async function (next) {
     if (this.isNew) {
         const summary = await Summary.findById(1);
-        summary.categoryCount = summary.categoryCount + 1;
-        await summary.save();
+        if (summary) { 
+            summary.categoryCount = summary.categoryCount + 1;
+            await summary.save();
+        }
     }
     next();
 });
 
 categorySchema.pre('remove', async function (next) {
     const summary = await Summary.findById(1);
-    summary.categoryCount = summary.categoryCount - 1;
-    await summary.save();
+    if (summary) { 
+        summary.categoryCount = summary.categoryCount - 1;
+        await summary.save();
+    }
     next();
 });
 

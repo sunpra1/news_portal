@@ -94,9 +94,11 @@ export default class News extends Component {
 
     getSearchSuggestions = () => {
         const { search, viewMyNewsOnly } = this.state;
+        const token = localStorage.getItem("token");
         Axios({
             method: 'get',
-            url: `${BaseURL}news${viewMyNewsOnly ? "/my" : ""}/search_suggestions/${search}/6`
+            url: `${BaseURL}news${viewMyNewsOnly ? "/my" : ""}/search_suggestions/${search}/6`,
+            authorization: token
         }).then(result => {
             const searchSuggestions = result.data;
             this.setState({ searchSuggestions });

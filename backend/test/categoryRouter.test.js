@@ -1,7 +1,3 @@
-//TODO:     Deletion and updation of category with one or more news
-//          Do after news router is completed
-//          Test creation of not allowed to other user except with role of ADMIN
-
 import './mongooseSetup';
 import Request from './expressSetup.js';
 
@@ -124,5 +120,37 @@ describe("Testing routes on category router", () => {
         expect(deleteCatRes.body._id).toBe(categoryId);
     });
 
+    /*--TESTED ON 2021/01/13--*/
+
+    test("Should probihit to add category to other user expect admin", async () => {
+        const userTwo = {
+            fullName: "User Two",
+            phone: 9810000000,
+            password: "usertwo12",
+            role: "AUTHOR"
+        };
+
+        const userRegisterRes = await Request.post("/users/register").send(userTwo);
+        const userTwoToken = userRegisterRes.body.token;
+
+        const categoryThree = { category: "Category Three" };
+        const newCategoryRes = await Request.post("/categories")
+            .set("authorization", userTwoToken)
+            .send(categoryThree);
+
+        console.log(newCategoryRes.body);
+        expect(newCategoryRes.statusCode).toBe(401);
+        expect(newCategoryRes.body.message).not.toBe(undefined);
+    });
+
+    test("Should probihit to delete category with one or more news", async () => {
+        const categoryThree = { category: "Category Three" };
+        const newCategoryRes = await Request.post("/categories")
+            .set("authorization", adminToken)
+            .send(categoryThree);
+        console.log(newCategoryRes.body);
+        expect(newCategoryRes.statusCode).toBe(400);
+        expect(newCategoryRes.body.message).not.toBe(undefined);
+    });
 
 });

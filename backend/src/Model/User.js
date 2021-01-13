@@ -106,43 +106,45 @@ userSchema.pre('save', async function (next) {
     const user = this;
     const summary = await Summary.findById(1);
 
-    switch (user.role) {
-        case "ADMIN": {
-            if (this.isNew) {
-                summary.adminUsers.push(user.id);
-                summary.totalUserCount = summary.totalUserCount + 1;
-            } else {
-                if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) < 0) summary.adminUsers.push(user.id);
+    if (summary) {
+        switch (user.role) {
+            case "ADMIN": {
+                if (this.isNew) {
+                    summary.adminUsers.push(user.id);
+                    summary.totalUserCount = summary.totalUserCount + 1;
+                } else {
+                    if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) < 0) summary.adminUsers.push(user.id);
 
-                if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
+                    if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
+                }
+                break;
             }
-            break;
-        }
 
-        case "AUTHOR": {
-            if (this.isNew) {
-                summary.authorUsers.push(user.id);
-                summary.totalUserCount = summary.totalUserCount + 1;
-            } else {
-                if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) < 0) summary.authorUsers.push(user.id);
+            case "AUTHOR": {
+                if (this.isNew) {
+                    summary.authorUsers.push(user.id);
+                    summary.totalUserCount = summary.totalUserCount + 1;
+                } else {
+                    if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) < 0) summary.authorUsers.push(user.id);
 
-                if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
+                    if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
+                }
+                break;
             }
-            break;
-        }
 
-        case "USER": {
-            if (this.isNew) {
-                summary.totalUserCount = summary.totalUserCount + 1;
-            } else {
-                if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
+            case "USER": {
+                if (this.isNew) {
+                    summary.totalUserCount = summary.totalUserCount + 1;
+                } else {
+                    if (summary.adminUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
 
-                if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
+                    if (summary.authorUsers.findIndex(userID => userID.toString() == user.id.toString()) > -1) summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
+                }
+                break;
             }
-            break;
         }
+        await summary.save();
     }
-    await summary.save();
     next();
 });
 
@@ -150,25 +152,27 @@ userSchema.pre('remove', async function (next) {
     const user = this;
     const summary = await Summary.findById(1);
 
-    switch (user.type) {
-        case "ADMIN": {
-            summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
-            summary.totalUserCount = summary.totalUserCount - 1;
-            break;
-        }
+    if (summary) { 
+        switch (user.type) {
+            case "ADMIN": {
+                summary.adminUsers = summary.adminUsers.filter(userID => userID.toString() != user.id.toString());
+                summary.totalUserCount = summary.totalUserCount - 1;
+                break;
+            }
 
-        case "AUTHOR": {
-            summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
-            summary.totalUserCount = summary.totalUserCount - 1;
-            break;
-        }
+            case "AUTHOR": {
+                summary.authorUsers = summary.authorUsers.filter(userID => userID.toString() != user.id.toString());
+                summary.totalUserCount = summary.totalUserCount - 1;
+                break;
+            }
 
-        case "USER": {
-            summary.totalUserCount = summary.totalUserCount - 1;
-            break;
+            case "USER": {
+                summary.totalUserCount = summary.totalUserCount - 1;
+                break;
+            }
         }
+        await summary.save();
     }
-    await summary.save();
     next();
 });
 

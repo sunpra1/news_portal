@@ -90,7 +90,7 @@ export default class Categories extends Component {
                                             <div className="row d-flex justify-content-around">
 
                                                 <div className="col-md-12 p-0">
-                                                    <Link to="/category/add" type="button" className="btn btn-primary mb-3 float-right rounded-0">
+                                                    <Link to="/category/add" className="btn btn-primary mb-3 float-right rounded-0">
                                                         ADD CATEGORY <FontAwesomeIcon icon={faPlus} />
                                                     </Link>
                                                 </div>

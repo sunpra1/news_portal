@@ -50,16 +50,20 @@ const newsSchema = Mongoose.Schema({
 newsSchema.pre('save', async function (next) {
     if (this.isNew) {
         const summary = await Summary.findById(1);
-        summary.newsCount = summary.newsCount + 1;
-        await summary.save();
+        if (summary) { 
+            summary.newsCount = summary.newsCount + 1;
+            await summary.save();
+        }
     }
     next();
 });
 
 newsSchema.pre('remove', async function (next) {
     const summary = await Summary.findById(1);
-    summary.newsCount = summary.newsCount - 1;
-    await summary.save();
+    if (summary) { 
+        summary.newsCount = summary.newsCount - 1;
+        await summary.save();
+    }
     next();
 });
 

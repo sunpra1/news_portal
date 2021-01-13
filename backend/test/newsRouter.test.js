@@ -31,7 +31,7 @@ describe("Testing routes on news router", () => {
             .send(anotherNewCategory);
         anotherCategoryId = anotherNewCategoryRes.body._id;
 
-        const newNews = {
+        const newsOne = {
             title: "Title on sample news one",
             description: "Topic on sample news one",
             category: categoryId
@@ -39,14 +39,14 @@ describe("Testing routes on news router", () => {
 
         const addNewsResponse = await Request.post("/news")
             .set("authorization", adminToken)
-            .send(newNews);
+            .send(newsOne);
         newsId = addNewsResponse.body._id;
 
         done();
     });
 
     test("Should add new news", async () => {
-        const newNews = {
+        const newsTwo = {
             title: "Title on sample news two",
             description: "Topic on sample news two",
             category: categoryId
@@ -54,12 +54,12 @@ describe("Testing routes on news router", () => {
 
         const addNewsResponse = await Request.post("/news")
             .set("authorization", adminToken)
-            .send(newNews);
+            .send(newsTwo);
 
         expect(addNewsResponse.statusCode).toBe(201);
-        expect(addNewsResponse.body.title).toBe(newNews.title);
-        expect(addNewsResponse.body.description).toBe(newNews.description);
-        expect(addNewsResponse.body.category._id).toBe(newNews.category);
+        expect(addNewsResponse.body.title).toBe(newsTwo.title);
+        expect(addNewsResponse.body.description).toBe(newsTwo.description);
+        expect(addNewsResponse.body.category._id).toBe(newsTwo.category);
     });
 
 
@@ -345,8 +345,6 @@ describe("Testing routes on news router", () => {
         expect(deleteCommentResponse.body.message.commentID).toBe(expectedMessage);
     });
 
-    /*-----------------------*/
-
     test("Should not increase view of news with id that doesn't exist", async () => {
         const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
         const expectedMessage = "News with id: " + idThatDoesntExist + " not found";
@@ -373,7 +371,9 @@ describe("Testing routes on news router", () => {
     });
 
     test("Should not react on news with id that doesn't exist", async () => {
-        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234"; const newReact = {
+            type: "SAD"
+        };
         const expectedMessage = "News with id: " + idThatDoesntExist + " not found";
         const reactNewsResponse = await Request.post("/news/" + idThatDoesntExist + "/reacts")
             .set("authorization", adminToken)
@@ -384,7 +384,9 @@ describe("Testing routes on news router", () => {
     });
 
     test("Should not react on view of news with invalid id", async () => {
-        const invalidID = "Invalid ID";
+        const invalidID = "Invalid ID"; const newReact = {
+            type: "SAD"
+        };
         const expectedMessage = "Provide valid id for route parameter newsID";
         const reactNewsResponse = await Request.post("/news/" + invalidID + "/reacts")
             .set("authorization", adminToken)
@@ -437,6 +439,85 @@ describe("Testing routes on news router", () => {
         expect(reactCommentResponse.body.type).toBe(newReact.type);
     });
 
+    /*--TESTED ON 2021/01/13--*/
+    test("Should not increase share count of news with id that doesn't exist", async () => {
+        const idThatDoesntExist = "5f2cfd905a6bda2740a2c234";
+        const expectedMessage = "News with id: " + idThatDoesntExist + " not found";
+        const increaseNewsSharesCountRes = await Request.put("/news/" + idThatDoesntExist + "/increaseShares");
+
+        expect(increaseNewsSharesCountRes.statusCode).toBe(400);
+        expect(increaseNewsSharesCountRes.body.message).toBe(expectedMessage);
+    });
+
+    test("Should not increase share count of news with invalid id", async () => {
+        const invalidID = "Invalid ID";
+        const expectedMessage = "Provide valid id for route parameter newsID";
+        const increaseNewsSharesCountRes = await Request.put("/news/" + invalidID + "/increaseShares");
+
+        expect(increaseNewsSharesCountRes.statusCode).toBe(400);
+        expect(increaseNewsSharesCountRes.body.message.newsID).toBe(expectedMessage);
+    });
+
+    test("Should increase share count of news", async () => {
+        const newsDetailsBeforeIncreasingShareCount = await Request.get("/news/" + newsId);
+        const increaseNewsSharesCountRes = await Request.put("/news/" + newsId + "/increaseShares");
+        expect(increaseNewsSharesCountRes.statusCode).toBe(200);
+        expect(Number(increaseNewsSharesCountRes.body.shares)).toBe(Number(newsDetailsBeforeIncreasingShareCount.body.shares) + 1);
+    });
+
+    test("Should not get popular news with invalid params", async () => {
+        const invalidPeriodParam = "Invalid Period";
+        const invalidIsCategoryWiseParam = "Invalid IS CATEGORY WISE";
+        const invalidThresholdParam = "Invalid Threshold";
+        const getPopularNewsResponse = await Request.get("/news/popular/" + invalidPeriodParam + "/" + invalidIsCategoryWiseParam + "/" + invalidThresholdParam);
+        expect(getPopularNewsResponse.statusCode).toBe(400);
+        expect(Object.keys(getPopularNewsResponse.body.message).includes("period"));
+        expect(Object.keys(getPopularNewsResponse.body.message).includes("isCategoryWise"));
+        expect(Object.keys(getPopularNewsResponse.body.message).includes("threshold"));
+    });
+
+    test("Should get popular news with invalid params", async () => {
+        const periodParam = "this_week";
+        const isCategoryWiseParam = "false";
+        const thresholdParam = "0";
+        const getPopularNewsResponse = await Request.get("/news/popular/" + periodParam + "/" + isCategoryWiseParam + "/" + thresholdParam);
+        expect(getPopularNewsResponse.statusCode).toBe(200);
+        expect(getPopularNewsResponse.body.length > 0).toBe(true);
+    });
+
+    test("Should get search suggestion of news added by all", async () => {
+        const searchTerm = "sample";
+        const getSearchSuggestionsOnAllNews = await Request.get("/news/search_suggestions/" + searchTerm + "/10");
+        expect(getSearchSuggestionsOnAllNews.statusCode).toBe(200);
+        expect(getSearchSuggestionsOnAllNews.body.length > 0).toBe(true);
+        expect(getSearchSuggestionsOnAllNews.body[0].title.indexOf(searchTerm) >= 0).toBe(true);
+    });
+
+    test("Shoud get search suggestions of news added by me", async () => {
+        const user = {
+            fullName: "Admin User",
+            phone: 9800000000,
+            password: "user12",
+            role: "ADMIN"
+        };
+        const userRegisterRes = await Request.post("/users/register").send(user);
+        const userToken = userRegisterRes.body.token;
+        const newsThree = {
+            title: "Title on sample news three",
+            description: "Topic on sample news three",
+            category: categoryId
+        };
+        await Request.post("/news")
+            .set("authorization", userToken)
+            .send(newsThree);
+
+        const searchTerm = "sample";
+        const getSearchSuggestionsOnMyNews = await Request.get("/news/my/search_suggestions/" + searchTerm + "/10")
+            .set("authorization", userToken);
+        expect(getSearchSuggestionsOnMyNews.statusCode).toBe(200);
+        expect(getSearchSuggestionsOnMyNews.body.length == 1).toBe(true);
+        expect(getSearchSuggestionsOnMyNews.body[0].title.indexOf(searchTerm) >= 0).toBe(true);
+    });
 
     /*---Should remain at last--*/
     test("Should delete comment on news", async () => {
