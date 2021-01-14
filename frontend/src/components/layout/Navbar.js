@@ -90,7 +90,7 @@ class Navbar extends Component {
                                                         :
                                                         <img style={{ height: "20px", width: "20px" }} className="rounded-circle mr-1" src={DefaultImage} alt={"App default image of " + user.fullName} />
                                                 }
-                                                {user.fullName}
+                                                <span id="loggedInUser">{user.fullName}</span>
                                             </span>
                                             <div className="dropdown-menu dropdown-menu-right rounded-0">
                                                 <span className="dropdown-item cursor-pointer" onClick={() => this.onLogoutClicked()}>LOGOUT</span>

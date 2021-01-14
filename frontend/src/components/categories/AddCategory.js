@@ -115,14 +115,14 @@ class AddCategory extends Component {
                                             <div className="form-group">
                                                 <label className="m-1" htmlFor="email">CATEGORY <span className="text-danger asterisk-info"><FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} />Required</span></label>
                                                 <div className="m-1">
-                                                    <input name="category" onChange={this.onChange} value={category} className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} />
+                                                    <input id="categoryInput" name="category" onChange={this.onChange} value={category} className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} />
                                                     <div className="invalid-feedback" autoComplete="off">
                                                         <span>{errors.category}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="card-footer form-group text-center rounded-0">
-                                                <button type="submit" className="btn btn-success rounded-0 m-1 text-center">ADD CATEGORY <FontAwesomeIcon icon={faPlusSquare} /> </button>
+                                                <button id="addCategoryBtn" type="submit" className="btn btn-success rounded-0 m-1 text-center">ADD CATEGORY <FontAwesomeIcon icon={faPlusSquare} /> </button>
                                             </div>
                                         </form>
                                     </div>

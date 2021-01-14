@@ -211,7 +211,7 @@ export default class News extends Component {
                     errors.error = "Unable to fetch news categories";
                 }
                 this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
-            }            
+            }
         }
     };
 
@@ -340,7 +340,7 @@ export default class News extends Component {
                                                         </div>
                                                         <div className="col-md col-sm-12">
                                                             <div className="col-md col-sm-12 p-0 d-flex justify-content-end my-1">
-                                                                <Link className="btn btn-primary rounded-0" to="/news/add">ADD NEWS &nbsp;<FontAwesomeIcon icon={faPlus} /></Link>
+                                                                <Link id="addNewsBtn" className="btn btn-primary rounded-0" to="/news/add">ADD NEWS &nbsp;<FontAwesomeIcon icon={faPlus} /></Link>
                                                             </div>
                                                         </div>
                                                     </div>

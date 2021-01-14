@@ -22,7 +22,7 @@ export default class AddNews extends Component {
         this.state = {
             categories: [],
             title: "",
-            description: "",
+            description: "Dummy news description",
             images: [],
             category: "0",
             tags: "",
@@ -311,8 +311,8 @@ export default class AddNews extends Component {
                                         <p className="text-danger asterisk-info">FIELDS MARKED WITH <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /> ARE REQUIRED. </p>
                                         <form onSubmit={this.onSubmit} method="post" encType="multipart/form-data">
                                             <div className="form-group">
-                                                <label htmlFor="category" className="text-info">CATEGORY <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
-                                                <select id="category" value={category} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="category" className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} >
+                                                <label htmlFor="categoryInput" className="text-info">CATEGORY <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
+                                                <select id="categoryInput" value={category} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="category" className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} >
                                                     <option value="0" key="0" disabled>SELECT CATEGORY</option>
                                                     {
                                                         categories.map((category, position) => {
@@ -326,15 +326,15 @@ export default class AddNews extends Component {
                                             </div>
 
                                             <div className="form-group">
-                                                <label htmlFor="title" className="text-info">TITLE <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
-                                                <input id="title" type="text" value={title} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="title" placeholder="PROVIDE TITLE OF NEWS" className={"form-control rounded-0 " + (errors.title ? "is-invalid" : "")} autoComplete="off" />
+                                                <label htmlFor="titleInput" className="text-info">TITLE <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
+                                                <input id="titleInput" type="text" value={title} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="title" placeholder="PROVIDE TITLE OF NEWS" className={"form-control rounded-0 " + (errors.title ? "is-invalid" : "")} autoComplete="off" />
                                                 <div className="invalid-feedback">
                                                     <span>{errors.title}</span>
                                                 </div>
                                             </div>
 
                                             <div className="form-group">
-                                                <label htmlFor="images" className="text-info">IMAGE(S)</label>
+                                                <label htmlFor="imagesInput" className="text-info">IMAGE(S)</label>
 
                                                 {
                                                     images.length > 0 && (
@@ -360,7 +360,7 @@ export default class AddNews extends Component {
                                                     )
                                                 }
 
-                                                <input id="images" type="file" onFocus={this.onInputFieldFocus} onChange={this.onImagesSelected} name="images" className={"form-control rounded-0 d-none " + (errors.images ? "is-invalid" : "")} autoComplete="off" multiple />
+                                                <input id="imagesInput" type="file" onFocus={this.onInputFieldFocus} onChange={this.onImagesSelected} name="images" className={"form-control rounded-0 d-none " + (errors.images ? "is-invalid" : "")} autoComplete="off" multiple />
                                                 <br />
                                                 <label htmlFor="images" className="btn btn-info rounded-0"><FontAwesomeIcon icon={faImage} /> SELECT IMAGE(S)</label>
                                                 {
@@ -372,8 +372,8 @@ export default class AddNews extends Component {
                                             </div>
 
                                             <div className="form-group">
-                                                <label htmlFor="description" className="text-info">DESCRIPTION <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
-                                                <ReactQuill style={{ maxHeight: "55vh", overflowY: "scroll" }} id="description" modules={this.modules}
+                                                <label htmlFor="descriptionInput" className="text-info">DESCRIPTION <FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} /></label>
+                                                <ReactQuill style={{ maxHeight: "55vh", overflowY: "scroll" }} id="descriptionInput" modules={this.modules}
                                                     onChange={this.onTextEditorChange} onFocus={this.onTextEditorFocus} onBlur={this.onTextEditorBlur} value={description} placeholder="PROVIDE TITLE OF NEWS" className={"bg-light rounded-0 " + (errors.description ? "is-invalid" : "")} autoComplete="off" />
                                                 <div className="invalid-feedback">
                                                     <span>{errors.description}</span>
@@ -381,15 +381,15 @@ export default class AddNews extends Component {
                                             </div>
 
                                             <div className="form-group">
-                                                <label htmlFor="tags" className="text-info">TAGS</label>
-                                                <input id="tags" type="text" value={tags} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="tags" placeholder="PROVIDE NEWS TAGS" className={"form-control rounded-0 " + (errors.tags ? "is-invalid" : "")} autoComplete="off" />
+                                                <label htmlFor="tagsInput" className="text-info">TAGS</label>
+                                                <input id="tagsInput" type="text" value={tags} onFocus={this.onInputFieldFocus} onChange={this.onChange} onBlur={this.onInputFieldBlur} name="tags" placeholder="PROVIDE NEWS TAGS" className={"form-control rounded-0 " + (errors.tags ? "is-invalid" : "")} autoComplete="off" />
                                                 <div className="invalid-feedback">
                                                     <span>{errors.tags}</span>
                                                 </div>
                                             </div>
 
                                             <div className="card-footer form-group text-center rounded-0">
-                                                <button type="submit" className="btn btn-primary rounded-0" name="new_discussion" value="new_discussion">ADD NEWS <FontAwesomeIcon icon={faPlusSquare} /></button>
+                                                <button type="submit" id="addNewsBtn" className="btn btn-primary rounded-0" name="new_discussion" value="new_discussion">ADD NEWS <FontAwesomeIcon icon={faPlusSquare} /></button>
                                             </div>
 
                                         </form>

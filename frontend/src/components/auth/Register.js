@@ -252,7 +252,7 @@ export default class Register extends Component {
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faUser} /> </span>
                                             </div>
-                                            <input type="text" name="fullName" value={fullName} onFocus={this.onInputFieldFocus} onBlur={this.onfullNameBlur} onChange={this.onChange} placeholder="YOUR FULL NAME" className={"form-control rounded-0 " + (errors.fullName ? "is-invalid" : "")} autoComplete="off" />
+                                            <input type="text" id="fullNameInput" name="fullName" value={fullName} onFocus={this.onInputFieldFocus} onBlur={this.onfullNameBlur} onChange={this.onChange} placeholder="YOUR FULL NAME" className={"form-control rounded-0 " + (errors.fullName ? "is-invalid" : "")} autoComplete="off" />
                                             <div className="invalid-feedback">
                                                 <span>{errors.fullName}</span>
                                             </div>
@@ -265,7 +265,7 @@ export default class Register extends Component {
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faPhone} /> </span>
                                             </div>
-                                            <input type="number" name="phone" onFocus={this.onInputFieldFocus} onBlur={this.onPhoneBlur} value={phone} onChange={this.onChange} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + ((errors.phone) ? "is-invalid" : "")} autoComplete="off" />
+                                            <input type="number" id="phoneInput" name="phone" onFocus={this.onInputFieldFocus} onBlur={this.onPhoneBlur} value={phone} onChange={this.onChange} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + ((errors.phone) ? "is-invalid" : "")} autoComplete="off" />
                                             <div className="invalid-feedback">
                                                 <span>{errors.phone}</span>
                                             </div>
@@ -278,7 +278,7 @@ export default class Register extends Component {
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
                                             </div>
-                                            <input type="password" name="password" onFocus={this.onInputFieldFocus} value={password} onBlur={this.onPasswordBlur} onChange={this.onChange} placeholder="YOUR PASSWORD" className={"form-control rounded-0 " + (errors.password ? "is-invalid" : "")} autoComplete="off" />
+                                            <input type="password" id="passwordInput" name="password" onFocus={this.onInputFieldFocus} value={password} onBlur={this.onPasswordBlur} onChange={this.onChange} placeholder="YOUR PASSWORD" className={"form-control rounded-0 " + (errors.password ? "is-invalid" : "")} autoComplete="off" />
                                             <div className="invalid-feedback">
                                                 <span>{errors.password}</span>
                                             </div>
@@ -291,14 +291,14 @@ export default class Register extends Component {
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
                                             </div>
-                                            <input type="password" name="confirm_password" onFocus={this.onInputFieldFocus} onBlur={this.onConfirmPasswordBlur} value={confirm_password} onChange={this.onChange} placeholder="CONFIRM PASSWORD" className={"form-control rounded-0 " + (errors.confirm_password ? "is-invalid" : "")} autoComplete="off" />
+                                            <input type="password" id="cPasswordInput" name="confirm_password" onFocus={this.onInputFieldFocus} onBlur={this.onConfirmPasswordBlur} value={confirm_password} onChange={this.onChange} placeholder="CONFIRM PASSWORD" className={"form-control rounded-0 " + (errors.confirm_password ? "is-invalid" : "")} autoComplete="off" />
                                             <div className="invalid-feedback">
                                                 <span>{errors.confirm_password}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="card-footer text-center form-group rounded-0">
-                                        <button type="submit" className="btn btn-success rounded-0" >REGISTER</button>
+                                        <button type="submit" id="registerBtn" className="btn btn-success rounded-0" >REGISTER</button>
                                     </div>
                                 </form>
                             </div>

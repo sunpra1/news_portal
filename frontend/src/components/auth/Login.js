@@ -135,7 +135,7 @@ export default class Login extends Component {
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"><FontAwesomeIcon icon={faPhone} /> </span>
                                             </div>
-                                            <input type="number" name="phone" value={phone} onChange={this.onChange} onFocus={this.onInputFieldFocus} onBlur={this.onInputFieldBlur} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} autoComplete="off" />
+                                            <input type="number" id="phoneInput" name="phone" value={phone} onChange={this.onChange} onFocus={this.onInputFieldFocus} onBlur={this.onInputFieldBlur} placeholder="YOUR PHONE NUMBER" className={"form-control rounded-0 " + (errors.phone ? "is-invalid" : "")} autoComplete="off" />
                                             <div className="invalid-feedback">
                                                 <span>{errors.phone}</span>
                                             </div>
@@ -148,7 +148,7 @@ export default class Login extends Component {
                                             <div className="input-group-prepend">
                                                 <span className="input-group-text  rounded-0" id="inputGroupPrepend"> <FontAwesomeIcon icon={faLock} /> </span>
                                             </div>
-                                            <input type="password" name="password" value={password} onChange={this.onChange} onFocus={this.onInputFieldFocus} onBlur={this.onInputFieldBlur} placeholder="YOUR PASSWORD" className={"form-control rounded-0 " + (errors.password ? "is-invalid" : "")} autoComplete="off" />
+                                            <input type="password" id="passwordInput" name="password" value={password} onChange={this.onChange} onFocus={this.onInputFieldFocus} onBlur={this.onInputFieldBlur} placeholder="YOUR PASSWORD" className={"form-control rounded-0 " + (errors.password ? "is-invalid" : "")} autoComplete="off" />
                                             <div className="invalid-feedback">
                                                 <span>{errors.password}</span>
                                             </div>
@@ -156,7 +156,7 @@ export default class Login extends Component {
                                     </div>
 
                                     <div className="card-footer form-group text-center rounded-0">
-                                        <button type="submit" name="login" className="btn btn-success rounded-0">LOGIN</button>
+                                        <button type="submit" id="loginBtn" name="login" className="btn btn-success rounded-0">LOGIN</button>
                                     </div>
                                 </form>
                             </div>

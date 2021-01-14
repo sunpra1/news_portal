@@ -149,7 +149,7 @@ class UpdateCategory extends Component {
                                                     <div className="form-group">
                                                         <label className="m-1" htmlFor="email">CATEGORY <span className="text-danger asterisk-info"><FontAwesomeIcon className="text-danger m-1 asterisk" icon={faAsterisk} />Required</span></label>
                                                         <div className="m-1">
-                                                            <input name="category" onChange={this.onChange} onBlur={this.onCategoryBlur} onFocus={this.onCategoryFocus} value={category} className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} />
+                                                            <input id="categoryInput" name="category" onChange={this.onChange} onBlur={this.onCategoryBlur} onFocus={this.onCategoryFocus} value={category} className={"form-control rounded-0 " + (errors.category ? "is-invalid" : "")} />
                                                             <div className="invalid-feedback">
                                                                 <span>{errors.category}</span>
                                                             </div>
@@ -157,7 +157,7 @@ class UpdateCategory extends Component {
 
                                                     </div>
                                                     <div className="card-footer form-group text-center rounded-0">
-                                                        <button type="submit" name="login" className="btn btn-success rounded-0 m-1 d-flex mx-auto">UPDATE</button>
+                                                        <button id="updateCategoryBtn" type="submit" name="updateCategory" className="btn btn-success rounded-0 m-1 d-flex mx-auto">UPDATE</button>
                                                     </div>
                                                 </form>
                                             </div>
