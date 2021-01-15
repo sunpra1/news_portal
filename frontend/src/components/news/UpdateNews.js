@@ -412,7 +412,7 @@ export default class UpdateNews extends Component {
                                                         }
                                                         <input id="imagesInput" type="file" onFocus={this.onInputFieldFocus} onChange={this.onImagesSelected} name="images" className={"form-control rounded-0 d-none " + (errors.images ? "is-invalid" : "")} autoComplete="off" multiple />
                                                         <br />
-                                                        <label htmlFor="images" className="btn btn-info rounded-0"><FontAwesomeIcon icon={faImage} /> SELECT NEW IMAGE(S)</label>
+                                                        <label htmlFor="imagesInput" className="btn btn-info rounded-0"><FontAwesomeIcon icon={faImage} /> SELECT NEW IMAGE(S)</label>
                                                         {
                                                             images.length > 0 && <span className="text-info ml-3">{images.length} Files Selected</span>
                                                         }
