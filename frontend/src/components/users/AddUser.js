@@ -13,7 +13,6 @@ import { UserContext } from '../context/UserContext';
 import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
-import { getImageBuffer } from '../utils/ImageHandler';
 
 export default class AddNews extends Component {
     static contextType = UserContext;

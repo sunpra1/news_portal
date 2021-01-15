@@ -13,7 +13,6 @@ import Loading from '../layout/Loading';
 import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
-import { getImageBuffer } from '../utils/ImageHandler';
 import Validator from 'validator';
 
 class EditProfile extends Component {
