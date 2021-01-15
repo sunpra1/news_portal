@@ -17,7 +17,6 @@ import Navbar from '../layout/Navbar';
 import Footer from '../layout/Footer';
 import Sidebar from '../layout/Sidebar';
 import { Link } from 'react-router-dom';
-import { getImageBuffer } from '../utils/ImageHandler';
 
 export default class Profile extends Component {
     static contextType = UserContext;
@@ -101,7 +100,7 @@ export default class Profile extends Component {
                                                 <div className="card-header">
                                                     {
                                                         image ?
-                                                            <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto profile-image box-shadow bg-light" src={`data:${image.mimetype};base64,${getImageBuffer(image)}`} alt={`Avatar of ${fullName}`} />
+                                                            <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto profile-image box-shadow bg-light" src={`data:${image.mimetype};base64,${image.buffer}`} alt={`Avatar of ${fullName}`} />
                                                             :
                                                             <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto profile-image box-shadow bg-light" src={DefaultImage} alt={`App default avatar of ${fullName}`} />
                                                     }

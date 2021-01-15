@@ -43,7 +43,7 @@ export default class ImageSlider extends Component {
         const { images } = this.props;
         return (
             <div className="col-12 p-0 mt-3 slider-image-wrapper">
-                <img src={`data:${images[imagePosition].mimetype};base64,${getImageBuffer(images[imagePosition])}`} alt={`news cover at position ${imagePosition}`} className="img-thumbnail img-fluid rounded-0" />
+                <img src={`data:${images[imagePosition].mimetype};base64,${images[imagePosition].buffer}`} alt={`news cover at position ${imagePosition}`} className="img-thumbnail img-fluid rounded-0" />
                 <FontAwesomeIcon className="slider-btn-left" onClick={this.onLeftArrowClick} icon={faAngleLeft} style={{ height: "6vh", width: "6vh" }} />
                 <FontAwesomeIcon className="slider-btn-right" onClick={this.onRightArrowClick} icon={faAngleRight} style={{ height: "6vh", width: "6vh" }} />
             </div>

@@ -10,7 +10,6 @@ import { BaseURL } from '../utils/Constant';
 import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
-import { getImageBuffer } from '../utils/ImageHandler';
 
 class Navbar extends Component {
     static contextType = UserContext;
@@ -86,7 +85,7 @@ class Navbar extends Component {
                                             <span className="nav-link dropdown-toggle text-light" id="navbardrop" data-toggle="dropdown">
                                                 {
                                                     user.image ?
-                                                        <img style={{ height: "20px", width: "20px" }} className="rounded-circle mr-1" src={`data:${user.image.mimetype};base64,${getImageBuffer(user.image)}`} alt={`Avatar of ${user.fullName}`} />
+                                                        <img style={{ height: "20px", width: "20px" }} className="rounded-circle mr-1" src={`data:${user.image.mimetype};base64,${user.image.buffer}`} alt={`Avatar of ${user.fullName}`} />
                                                         :
                                                         <img style={{ height: "20px", width: "20px" }} className="rounded-circle mr-1" src={DefaultImage} alt={"App default image of " + user.fullName} />
                                                 }

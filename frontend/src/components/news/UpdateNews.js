@@ -16,7 +16,6 @@ import Dialog from '../layout/Dialog';
 import Loading from '../layout/Loading';
 import { UserContext } from '../context/UserContext';
 import { Redirect } from 'react-router-dom';
-import { getImageBuffer } from '../utils/ImageHandler';
 
 export default class UpdateNews extends Component {
     static contextType = UserContext;
@@ -376,7 +375,7 @@ export default class UpdateNews extends Component {
                                                                         oldImages.map((image, position) => {
                                                                             return (
                                                                                 <div key={position}>
-                                                                                    <img src={`data:${image.mimetype};base64,${getImageBuffer(image)}`} className="my-2 mr-2 p-1 border-success" style={{ height: "150px", width: "150px", border: "2px solid" }} alt={title} />
+                                                                                    <img src={`data:${image.mimetype};base64,${image.buffer}`} className="my-2 mr-2 p-1 border-success" style={{ height: "150px", width: "150px", border: "2px solid" }} alt={title} />
                                                                                 </div>
                                                                             );
                                                                         })

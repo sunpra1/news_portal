@@ -133,7 +133,7 @@ userRouter.route("/profile")
                         if (req.file) {
                             const image = new Image(new Image({
                                 mimetype: "image/jpeg",
-                                buffer: await Sharp(req.file.buffer).jpeg({ quality: 48 }).toBuffer()
+                                buffer: Buffer(await Sharp(req.file.buffer).jpeg({ quality: 48 }).toBuffer()).toString("base64")
                             }));
                             user.image = image;
                         }

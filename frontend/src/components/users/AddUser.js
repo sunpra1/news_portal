@@ -205,7 +205,7 @@ export default class AddNews extends Component {
                                                 <div className="col-md-5">
                                                     <div className="col card rounded-0 box-shadow" style={{ marginTop: "6vh" }}>
                                                         <div className="col d-flex justify-content-center" style={{ position: "relative" }}>
-                                                            <img src={user.image ? `data:${user.image.mimetype};base64,${getImageBuffer(user.image)}` : User} alt="User whose role is being changed" className="img-thumbnail rounded-circle mx-auto" style={{ width: "12vh", height: "12vh", position: "absolute", top: "-6vh" }} />
+                                                            <img src={user.image ? `data:${user.image.mimetype};base64,${user.image.buffer}` : User} alt="User whose role is being changed" className="img-thumbnail rounded-circle mx-auto" style={{ width: "12vh", height: "12vh", position: "absolute", top: "-6vh" }} />
                                                         </div>
 
                                                         <div className="card-header" style={{ marginTop: "6vh" }}>

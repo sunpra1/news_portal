@@ -387,7 +387,7 @@ class EditProfile extends Component {
                                         <div className="col rounded-0">
                                             {
                                                 user.image ?
-                                                    <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto" src={`data:${user.image.mimetype};base64,${getImageBuffer(user.image)}`} alt={`Avatar of ${user.fullName}`} />
+                                                    <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto" src={`data:${user.image.mimetype};base64,${user.image.buffer}`} alt={`Avatar of ${user.fullName}`} />
                                                     :
                                                     <img style={{ height: "18vh", width: "18vh" }} className="img-thumbnail rounded-circle d-flex mx-auto" src={DefaultImage} alt={`App default avatar of ${user.fullName}`} />
                                             }
