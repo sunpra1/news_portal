@@ -7,7 +7,7 @@ const imageSchema = Mongoose.Schema({
         required: [true, "Image MIME type is required"]
     },
     buffer: {
-        type: Buffer,
+        type: String,
         required: [true, "Image buffer is required"]
     }
 });
