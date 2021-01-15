@@ -197,6 +197,7 @@ export default class News extends Component {
                 ]);
 
                 const news = requestResponse[0].data;
+                console.log(news);
                 const categories = requestResponse[1].data;
                 this.setState({ news, categories, isRequestComplete: true });
             } catch (error) {

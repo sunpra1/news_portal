@@ -29,7 +29,7 @@ newsRouter.route("/")
                     if (req.files && req.files.length > 0) {
                         news.images = await Promise.all(req.files.map(async file => new Image({
                             mimetype: "image/jpeg",
-                            buffer: Buffer(await Sharp(file.buffer).jpeg({ quality: 48 }).toBuffer()).toString("base64")
+                            buffer: Buffer.from(await Sharp(file.buffer).jpeg({ quality: 48 }).toBuffer()).toString("base64")
                         })));
                     }
                     user.news.push(news.id);
@@ -389,7 +389,7 @@ newsRouter.route("/:newsID")
             if (req.files && req.files.length > 0) {
                 news.images = await Promise.all(req.files.map(async file => new Image({
                     mimetype: "image/jpeg",
-                    buffer: Buffer(await Sharp(file.buffer).jpeg({ quality: 48 }).toBuffer()).toString("base64")
+                    buffer: Buffer.from(await Sharp(file.buffer).jpeg({ quality: 48 }).toBuffer()).toString("base64")
                 })));
             }
             Object.keys(req.body).forEach(key => news[key] = req.body[key]);
