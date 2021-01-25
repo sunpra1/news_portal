@@ -36,7 +36,7 @@ export default class News extends Component {
 
     toggleNewsApproveStatus = (newsWhoseApprovedStatusGotChanged, position) => {
         const { news } = this.state;
-        news.splice(position, 1)
+        news.splice(position, 1);
         this.setState({ news });
     };
 
@@ -58,7 +58,10 @@ export default class News extends Component {
         if (name === "limit" && value && value <= 0) return;
         this.setState({ [name]: value }, () => {
             if (name === "search" && Validator.trim(value).length > 5) this.getSearchSuggestions();
-            if (name === "category" || name === "sortOption" || name === "viewMyNewsOnly" || name === "viewApprovedNewsOnly") this.setState({ isRequestComplete: false }, () => this.getNews());
+            if (name === "viewMyNewsOnly" || name === "viewApprovedNewsOnly")
+                this.setState({ page: 1, isRequestComplete: false }, () => this.getNews());
+            else if (name === "category" || name === "sortOption")
+                this.setState({ isRequestComplete: false }, () => this.getNews());
         });
     };
 
