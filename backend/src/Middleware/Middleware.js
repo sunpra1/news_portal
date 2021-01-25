@@ -9,7 +9,7 @@ const Auth = async (req, res, next) => {
         if (token) {
             const decodedToken = Jwt.verify(token, process.env.JWT_SECRET);
             let user = await User.findOne({ _id: decodedToken, "tokens.token": token });
-            if (user) {
+            if (user ) {
                 req.user = user;
                 req.token = token;
                 next();
@@ -62,6 +62,26 @@ const AdminUser = (req, res, next) => {
                 next(e);
             }
 
+        }
+    });
+};
+
+const AdminOrAuthorUser = (req, res, next) => {
+    Auth(req, res, error => {
+        if (error) {
+            next(error);
+        } else {
+            try {
+                if (req.user.role === "ADMIN" || req.user.role === "AUTHOR") {
+                    next();
+                } else {
+                    const error = new Error("You don't have enough privilage to perform this action");
+                    error.statusCode = 401;
+                    next(error);
+                }
+            } catch (e) {
+                next(e);
+            }
         }
     });
 };
@@ -245,4 +265,4 @@ const DeleteComment = (req, res, next) => {
     });
 };
 
-export { Auth, IfAuth, AdminUser, PostNews, UpdateNews, DeleteNews, UpdateComment, DeleteComment };
+export { Auth, IfAuth, AdminUser, AdminOrAuthorUser, PostNews, UpdateNews, DeleteNews, UpdateComment, DeleteComment };

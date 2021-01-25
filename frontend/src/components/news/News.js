@@ -27,11 +27,18 @@ export default class News extends Component {
             news: [],
             searchSuggestions: [],
             viewMyNewsOnly: false,
+            viewApprovedNewsOnly: false,
             errors: {},
             dialog: null,
             isRequestComplete: false
         };
     }
+
+    toggleNewsApproveStatus = (newsWhoseApprovedStatusGotChanged, position) => {
+        const { news } = this.state;
+        news.splice(position, 1)
+        this.setState({ news });
+    };
 
     setUpErrorDialog = () => {
         const { errors } = this.state;
@@ -47,10 +54,11 @@ export default class News extends Component {
         const name = e.target.name;
         let value = e.target.value;
         if (name === "viewMyNewsOnly") value = value !== "true";
+        if (name === "viewApprovedNewsOnly") value = value !== "true";
         if (name === "limit" && value && value <= 0) return;
         this.setState({ [name]: value }, () => {
             if (name === "search" && Validator.trim(value).length > 5) this.getSearchSuggestions();
-            if (name === "category" || name === "sortOption" || name === "viewMyNewsOnly") this.setState({ isRequestComplete: false }, () => this.getNews());
+            if (name === "category" || name === "sortOption" || name === "viewMyNewsOnly" || name === "viewApprovedNewsOnly") this.setState({ isRequestComplete: false }, () => this.getNews());
         });
     };
 
@@ -122,13 +130,13 @@ export default class News extends Component {
         if (token) {
             this.setState({ isRequestComplete: false });
             const { page, limit } = this.state;
-            let { category, search, sortOption, viewMyNewsOnly } = this.state;
+            let { category, search, sortOption, viewMyNewsOnly, viewApprovedNewsOnly } = this.state;
             category = category ? category : "null";
             search = search ? search : "null";
             sortOption = sortOption ? sortOption : "null";
             Axios({
                 method: 'get',
-                url: `${BaseURL}news${viewMyNewsOnly ? "/my" : ""}/${page}/${limit}/${category}/${sortOption}/${search}`,
+                url: `${BaseURL}news/backend${viewMyNewsOnly ? "/my" : ""}/${page}/${limit}/${viewApprovedNewsOnly}/${category}/${sortOption}/${search}`,
                 headers: {
                     authorization: token
                 }
@@ -176,7 +184,7 @@ export default class News extends Component {
         const token = localStorage.getItem("token");
         if (token) {
             const { page, limit } = this.state;
-            let { category, search, sortOption, viewMyNewsOnly } = this.state;
+            let { category, search, sortOption, viewMyNewsOnly, viewApprovedNewsOnly } = this.state;
             category = category ? category : "null";
             search = search ? search : "null";
             sortOption = sortOption ? sortOption : "null";
@@ -185,7 +193,7 @@ export default class News extends Component {
                 const requestResponse = await Promise.all([
                     Axios({
                         method: 'get',
-                        url: `${BaseURL}news${viewMyNewsOnly ? "/my" : ""}/${page}/${limit}/${category}/${sortOption}/${search}`,
+                        url: `${BaseURL}news/backend${viewMyNewsOnly ? "/my" : ""}/${page}/${limit}/${viewApprovedNewsOnly}/${category}/${sortOption}/${search}`,
                         headers: {
                             authorization: token
                         }
@@ -197,7 +205,6 @@ export default class News extends Component {
                 ]);
 
                 const news = requestResponse[0].data;
-                console.log(news);
                 const categories = requestResponse[1].data;
                 this.setState({ news, categories, isRequestComplete: true });
             } catch (error) {
@@ -223,7 +230,7 @@ export default class News extends Component {
     };
 
     render() {
-        const { news, categories, category, search, sortOption, page, limit, viewMyNewsOnly, searchSuggestions, dialog, isRequestComplete } = this.state;
+        const { news, categories, category, search, sortOption, page, limit, viewMyNewsOnly, searchSuggestions, dialog, isRequestComplete, viewApprovedNewsOnly } = this.state;
         return (
             <>
                 {
@@ -328,15 +335,21 @@ export default class News extends Component {
                                                     <div className="row">
                                                         <div className="col-md col-sm-12">
                                                             <div className="input-group">
-                                                                <label className="my-1 mr-2 text-info" htmlFor="limit">NEWS PER PAGE</label>
+                                                                <label className="my-1 mr-2 text-info" htmlFor="limit">NEWS/PAGE</label>
                                                                 <input type="number" name="limit" value={limit} onChange={this.onChangeHandler} placeholder="LIMIT" className="form-control-sm rounded-0 border" style={{ width: "80px" }} />
                                                                 <button onClick={this.getNews} className="btn btn-info btn-sm rounded-0" name="search_btn" value="search_btn"><FontAwesomeIcon icon={faThList} /></button>
                                                             </div>
                                                         </div>
                                                         <div className="col-md col-sm-12">
                                                             <div className="input-group justify-content-center">
-                                                                <label className="my-1 mr-2 text-info" htmlFor="viewMyNewsOnly">MY NEWS ONLY</label>
+                                                                <label className="my-1 mr-2 text-info" htmlFor="viewMyNewsOnly">MY NEWS</label>
                                                                 <input type="checkbox" name="viewMyNewsOnly" value={viewMyNewsOnly} checked={viewMyNewsOnly} onChange={this.onChangeHandler} className="form-control-sm rounded-0 cursor-pointer" style={{ width: "20px" }} />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-md col-sm-12">
+                                                            <div className="input-group justify-content-center">
+                                                                <label className="my-1 mr-2 text-info" htmlFor="viewMyNewsOnly">GET APPROVED</label>
+                                                                <input type="checkbox" name="viewApprovedNewsOnly" value={viewApprovedNewsOnly} checked={viewApprovedNewsOnly} onChange={this.onChangeHandler} className="form-control-sm rounded-0 cursor-pointer" style={{ width: "20px" }} />
                                                             </div>
                                                         </div>
                                                         <div className="col-md col-sm-12">
@@ -348,7 +361,7 @@ export default class News extends Component {
                                                 </div>
 
                                                 <div className="col-12 p-0">
-                                                    <NewsList deleteNews={this.deleteNews} news={news} />
+                                                    <NewsList deleteNews={this.deleteNews} toggleNewsApproveStatus={this.toggleNewsApproveStatus} news={news} />
                                                 </div>
 
                                             </div>

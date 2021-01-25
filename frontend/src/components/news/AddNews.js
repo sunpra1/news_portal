@@ -22,7 +22,7 @@ export default class AddNews extends Component {
         this.state = {
             categories: [],
             title: "",
-            description: "Dummy news description",
+            description: "",
             images: [],
             category: "0",
             tags: "",

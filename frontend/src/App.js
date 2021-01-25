@@ -24,6 +24,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Profile from './components/profile/Profile';
 import EditProfile from './components/profile/EditProfile';
+import ImageSlider from './components/imageSlider/ImageSlider';
+import AddSliderImage from './components/imageSlider/AddSliderImage';
 
 function App() {
   return (
@@ -46,6 +48,8 @@ function App() {
           <AdminRoute exact path="/category/update/:categoryID" component={UpdateCategory} />
           <AdminRoute exact path="/users" component={Users} />
           <AdminRoute exact path="/users/add" component={AddUser} />
+          <AdminRoute exact path="/sliderImages" component={ImageSlider} />
+          <AdminRoute exact path="/sliderImages/add" component={AddSliderImage} />
         </Switch>
       </Router>
     </UserProvider>

@@ -66,7 +66,7 @@ class AddCategory extends Component {
                         errors.error = error.response.data.message;
                     }
                 } else {
-                    errors.error = "Invalid credentials provided";
+                    errors.error = "Unable to add category";
                 }
                 this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });

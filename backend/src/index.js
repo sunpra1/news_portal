@@ -6,6 +6,7 @@ import categoryRouter from './Router/Category.js';
 import { getSimplifiedError } from './Utils/SimplifiedError.js';
 import newsRouter from './Router/News.js';
 import summaryRouter from './Router/Summary.js';
+import imageSliderRouter from './Router/ImageSlider.js';
 
 const setupExpress = (hasConnectedToMongoose) => {
     if (hasConnectedToMongoose) {
@@ -19,6 +20,7 @@ const setupExpress = (hasConnectedToMongoose) => {
         app.use("/categories", categoryRouter);
         app.use("/news", newsRouter);
         app.use("/summaries", summaryRouter);
+        app.use("/sliderImages", imageSliderRouter);
 
         app.use("*", function (req, res, next) {
             let err = new Error("Route Not Found");

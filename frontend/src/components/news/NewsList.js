@@ -1,4 +1,4 @@
-import { faExclamationTriangle, faPenAlt, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faExclamationTriangle, faPenAlt, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { Component } from 'react';
 import Axios from 'axios';
@@ -64,6 +64,37 @@ export default class NewsList extends Component {
         }
     };
 
+    toggleApprovedStatusHandler = (news, position) => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            this.setState({ isRequestComplete: false });
+            Axios({
+                method: 'put',
+                url: `${BaseURL}news/${news._id}/toggleApproved`,
+                headers: {
+                    authorization: token
+                }
+            }).then(result => {
+                this.setState({ isRequestComplete: true });
+                const newsResponse = result.data;
+                this.props.toggleNewsApproveStatus(newsResponse, position);
+                toast.success(`News has been ${newsResponse.approved ? "approved" : "disapproved"} successfully`);
+            }).catch(error => {
+                let { errors } = this.state;
+                if (error.response && error.response.data.message) {
+                    if (typeof error.response.data.message === "object" && Object.keys(error.response.data.message).length > 0) {
+                        errors = error.response.data.message;
+                    } else {
+                        errors.error = error.response.data.message;
+                    }
+                } else {
+                    errors.error = "Unable to delete news";
+                }
+                this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
+            });
+        }  
+    }
+
     render() {
         const { news } = this.props;
         const { dialog, isRequestComplete } = this.state;
@@ -93,7 +124,7 @@ export default class NewsList extends Component {
                                     news.map((news, position) => {
                                         return (
                                             <tr key={news._id}>
-                                                <td><Link to={{
+                                                <td><Link className={`${news.approved ? "text-primary" : "text-danger" }`} to={{
                                                     pathname: `/news/view/${news._id}`,
                                                     news
                                                 }}>{news.title}</Link></td>
@@ -105,6 +136,7 @@ export default class NewsList extends Component {
                                                         pathname: `/news/update/${news._id}`,
                                                         news
                                                     }} className="btn btn-sm rounded-0 btn-info m-1"><FontAwesomeIcon icon={faPenAlt} /></Link>
+                                                    <button onClick={() => this.toggleApprovedStatusHandler(news, position)} className={`btn btn-sm rounded-0 ${news.approved ? "btn-danger" : "btn-success" } m-1`}><FontAwesomeIcon icon={news.approved ? faTimes : faCheck} /></button>
                                                     <button onClick={() => this.onDeleteNewsClicked(news, position)} className="btn btn-sm rounded-0 btn-danger m-1"><FontAwesomeIcon icon={faTrash} /></button>
                                                 </td>
                                             </tr>

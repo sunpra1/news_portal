@@ -34,7 +34,6 @@ class EditProfile extends Component {
             image: null,
             newImage: null,
             errors: {},
-            modalIsOpen: false,
             dialog: null,
             isRequestComplete: true
         };

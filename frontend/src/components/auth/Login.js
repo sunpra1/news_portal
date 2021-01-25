@@ -96,9 +96,17 @@ export default class Login extends Component {
 
         if (!input.phone)
             errors.phone = "Phone is required";
+        else if (!Validator.isNumeric(Validator.trim(input.phone))) {
+            errors.phone = "Phone number must be numeric";
+        } else if (Validator.trim(input.phone).length !== 10) { 
+            errors.phone = "Phone number must be 10 characters long"
+        }        
 
         if (!input.password)
             errors.password = "Password is required";
+        else if (Validator.trim(input.password).length < 6) {
+            errors.password = "Password must be atleast 6 characters long";
+        }
 
         this.setState({ errors });
         return Object.keys(errors).length === 0;

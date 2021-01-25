@@ -138,7 +138,6 @@ describe("Testing routes on category router", () => {
             .set("authorization", userTwoToken)
             .send(categoryThree);
 
-        console.log(newCategoryRes.body);
         expect(newCategoryRes.statusCode).toBe(401);
         expect(newCategoryRes.body.message).not.toBe(undefined);
     });
@@ -148,7 +147,6 @@ describe("Testing routes on category router", () => {
         const newCategoryRes = await Request.post("/categories")
             .set("authorization", adminToken)
             .send(categoryThree);
-        console.log(newCategoryRes.body);
         expect(newCategoryRes.statusCode).toBe(400);
         expect(newCategoryRes.body.message).not.toBe(undefined);
     });

@@ -221,6 +221,7 @@ const addNewsData = data => {
 
 const getNewsParams = data => {
     let error = {};
+
     if (data.page) {
         if (!Validator.isNumeric(data.page)) {
             error.page = "Route Parameter page must be numeric value";
@@ -240,6 +241,37 @@ const getNewsParams = data => {
     if (data.category != "null" && !Validator.isMongoId(data.category)) {
         error.category = "Route Parameter category id is invalid";
     }
+
+    return error;
+};
+
+const getBackendNewsParams = data => {
+    let error = {};
+    if (data.page) {
+        if (!Validator.isNumeric(data.page)) {
+            error.page = "Route Parameter page must be numeric value";
+        } else if (Number(data.page) <= 0) {
+            error.limit = "Route Parameter page must be greater then 0";
+        }
+    }
+
+    if (data.limit) {
+        if (!Validator.isNumeric(data.limit)) {
+            error.limit = "Route Parameter limit must be numeric value";
+        } else if (Number(data.limit) <= 0) {
+            error.limit = "Route Parameter limit must be greater then 0";
+        }
+    }
+
+    if (data.category != "null" && !Validator.isMongoId(data.category)) {
+        error.category = "Route Parameter category id is invalid";
+    }
+
+
+    if (data.approved && !Validator.isBoolean(data.approved)) {
+        error.approved = "Route Parameter approved must be boolean value";
+    }
+
 
     return error;
 };
@@ -431,4 +463,33 @@ const getSearchSuggestionsData = (data) => {
     return error;
 };
 
-export { addUserData, uniqueUserData, updateUserRoleData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, increaseNewsViewData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData };
+const addNewSliderImageData = data => {
+    const error = {};
+    if (!data.file) {
+        error.image = "Image for the slider is required";
+    }
+
+    if (data.visibility && !Validator.isBoolean(data.visibility)) { 
+        error.visibility = "Image visibility must be a boolean value";
+    }
+
+    return error;
+}
+
+const deleteSliderImageData = data => {
+    const error = {};
+    if (!Validator.isMongoId(data.imageSliderID)) {
+        error.imageSliderID = "Provide valid id for route parameter imageSliderID";
+    }
+    return error;
+}
+
+const toggleSliderImageVisibilityData = data => {
+    const error = {};
+    if (!Validator.isMongoId(data.imageSliderID)) {
+        error.imageSliderID = "Provide valid id for route parameter imageSliderID";
+    }
+    return error;
+}
+
+export { addUserData, uniqueUserData, updateUserRoleData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getNewsParams, getBackendNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, increaseNewsViewData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, addNewSliderImageData, deleteSliderImageData, toggleSliderImageVisibilityData };

@@ -1,8 +1,8 @@
 import Express from 'express';
-import { AdminUser, Auth, DeleteComment, IfAuth, PostNews, UpdateNews, UpdateComment, DeleteNews } from '../Middleware/Middleware.js';
+import { AdminUser, Auth, DeleteComment, IfAuth, PostNews, UpdateNews, UpdateComment, DeleteNews, AdminOrAuthorUser } from '../Middleware/Middleware.js';
 import { TakeCommentReactSchemaFillable, TakeCommentSchemaFillable, TakeNewsReactSchemaFillable, TakeNewsSchemaFillable } from '../Middleware/TakeFillables.js';
 import News from '../Model/News.js';
-import { addCommentData, addNewsData, getNewsParams, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, increaseNewsViewData } from '../Utils/Validate.js';
+import { addCommentData, addNewsData, getNewsParams, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, increaseNewsViewData, getBackendNewsParams } from '../Utils/Validate.js';
 import ImageUpload from '../Utils/fileUpload.js';
 import Category from '../Model/Category.js';
 import Validator from 'validator';
@@ -56,8 +56,9 @@ newsRouter.route("/")
         }
     });
 
+//For frontend
 newsRouter.route("/:page/:limit/:category/:sortOption/:search")
-    .get(IfAuth, async (req, res, next) => {
+    .get(async (req, res, next) => {
         try {
             const validationErrors = getNewsParams(req.params);
             if (Object.keys(validationErrors).length == 0) {
@@ -79,7 +80,8 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                         await cat.populate({
                             path: "news",
                             match: {
-                                title: { $regex: ".*" + search + ".*", $options: "i" }
+                                title: { $regex: ".*" + search + ".*", $options: "i" },
+                                approved: true
                             },
                             options: {
                                 sort,
@@ -99,7 +101,8 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                         await cat.populate({
                             path: "news",
                             match: {
-                                title: { $regex: ".*" + search + ".*", $options: "i" }
+                                title: { $regex: ".*" + search + ".*", $options: "i" },
+                                approved: true
                             },
                             options: {
                                 limit,
@@ -122,6 +125,9 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                     const cat = await Category.findById(category);
                     await cat.populate({
                         path: "news",
+                        match: {
+                            approved: true
+                        },
                         options: {
                             sort,
                             limit,
@@ -145,6 +151,9 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                     if (cat) {
                         await cat.populate({
                             path: "news",
+                            match: {
+                                approved: true
+                            },
                             options: {
                                 limit,
                                 skip
@@ -165,16 +174,14 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
                     sortOption == "new" ? sort.createdAt = -1 : "";
                     sortOption == "old" ? sort.createdAt = 1 : "";
                     sortOption == "popular" ? sort.views = -1 : "";
-                    data = await News.find({}).sort(sort).limit(limit).skip(skip);
+                    data = await News.find({ approved: true }).sort(sort).limit(limit).skip(skip);
                 }
 
                 else {
-                    data = await News.find({}).sort({ createdAt: -1 }).limit(limit).skip(skip);
+                    data = await News.find({ approved: true }).sort({ createdAt: -1 }).limit(limit).skip(skip);
                 }
                 data = await Promise.all(data.map(async item => {
-                    if (!(req.user && req.user.role == "ADMIN")) {
-                        item.comments = item.comments.filter(comment => comment.approved);
-                    }
+                    item.comments = item.comments.filter(comment => comment.approved);
                     await item.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
                     return item;
                 }));
@@ -188,12 +195,159 @@ newsRouter.route("/:page/:limit/:category/:sortOption/:search")
         }
     });
 
-newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
+
+//for backend
+newsRouter.route("/backend/:page/:limit/:approved/:category/:sortOption/:search")
+    .get(AdminUser, async (req, res, next) => {
+        try {
+            const validationErrors = getBackendNewsParams(req.params);
+            if (Object.keys(validationErrors).length == 0) {
+                const { category, sortOption, search, approved } = req.params;
+                const limit = req.params.limit ? Number(req.params.limit) : 100;
+                const page = req.params.page ? Number(req.params.page) : 1;
+
+                let data = null;
+                const skip = (page - 1) * limit;
+                if (category !== "null" && search !== "null" && sortOption !== "null") {
+                    let sort = {};
+                    sortOption == "new" ? sort.createdAt = -1 : "";
+                    sortOption == "old" ? sort.createdAt = 1 : "";
+                    sortOption == "popular" ? sort.views = -1 : "";
+
+                    const cat = await Category.findById(category);
+                    if (cat) {
+                        await cat.populate({
+                            path: "news",
+                            match: {
+                                title: { $regex: ".*" + search + ".*", $options: "i" },
+                                approved: approved == "true" && approved != "false"
+                            },
+                            options: {
+                                sort,
+                                limit,
+                                skip
+                            }
+                        }).execPopulate();
+                        data = cat.news;
+                    } else {
+                        data = [];
+                    }
+                }
+
+                else if (category !== "null" && search !== "null") {
+                    const cat = await Category.findById(category);
+                    if (cat) {
+                        await cat.populate({
+                            path: "news",
+                            match: {
+                                title: { $regex: ".*" + search + ".*", $options: "i" },
+                                approved: approved == "true" && approved != "false"
+                            },
+                            options: {
+                                limit,
+                                skip
+                            }
+                        }).execPopulate();
+
+                        data = cat.news;
+                    } else {
+                        data = [];
+                    }
+                }
+
+                else if (category !== "null" && sortOption !== "null") {
+                    let sort = {};
+                    sortOption == "new" ? sort.createdAt = -1 : "";
+                    sortOption == "old" ? sort.createdAt = 1 : "";
+                    sortOption == "popular" ? sort.views = -1 : "";
+
+                    const cat = await Category.findById(category);
+                    await cat.populate({
+                        path: "news", match: {
+                            approved: approved == "true" && approved != "false"
+                        },
+                        options: {
+                            sort,
+                            limit,
+                            skip
+                        }
+                    }).execPopulate();
+                    data = cat.news;
+                }
+
+                else if (search !== "null" && sortOption !== "null") {
+                    let sort = {};
+                    sortOption == "new" ? sort.createdAt = -1 : "";
+                    sortOption == "old" ? sort.createdAt = 1 : "";
+                    sortOption == "popular" ? sort.views = -1 : "";
+
+                    data = await News.find({
+                        title: { $regex: ".*" + search + ".*", $options: "i" }, match: {
+                            title: { $regex: ".*" + search + ".*", $options: "i" },
+                            approved: approved == "true" && approved != "false"
+                        },
+                    }).sort(sort).limit(limit).skip(skip);
+                }
+
+                else if (category !== "null") {
+                    const cat = await Category.findById(category);
+                    if (cat) {
+                        await cat.populate({
+                            path: "news",
+                            options: {
+                                limit,
+                                skip
+                            }
+                        }).execPopulate();
+                        data = cat.news;
+                    } else {
+                        data = [];
+                    }
+                }
+
+                else if (search !== "null") {
+                    data = await News.find({
+                        title: { $regex: ".*" + search + ".*", $options: "i" },
+                        approved: approved == "true" && approved != "false"
+                    });
+                }
+
+                else if (sortOption !== "null") {
+                    let sort = {};
+                    sortOption == "new" ? sort.createdAt = -1 : "";
+                    sortOption == "old" ? sort.createdAt = 1 : "";
+                    sortOption == "popular" ? sort.views = -1 : "";
+                    data = await News.find({
+                        approved: approved == "true" && approved != "false"
+                    }).sort(sort).limit(limit).skip(skip);
+                }
+
+                else {
+                    data = await News.find({
+                        approved: approved == "true" && approved != "false"
+                    }).sort({ createdAt: -1 }).limit(limit).skip(skip);
+                }
+                data = await Promise.all(data.map(async item => {
+                    await item.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
+                    return item;
+                }));
+                res.send(data);
+
+            } else {
+                res.status(400).send({ message: validationErrors });
+            }
+        } catch (error) {
+            next(error);
+        }
+    });
+
+//for backend
+newsRouter.route("/backend/my/:page/:limit/:approved/:category/:sortOption/:search")
     .get(Auth, async (req, res, next) => {
         try {
-            const validationErrors = getNewsParams(req.params);
+            const validationErrors = getBackendNewsParams(req.params);
             if (Object.keys(validationErrors).length == 0) {
-                const { category, sortOption, search } = req.params;
+                const { category, sortOption, search, approved } = req.params;
                 const limit = req.params.limit ? Number(req.params.limit) : 100;
                 const page = req.params.page ? Number(req.params.page) : 1;
 
@@ -210,7 +364,8 @@ newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
                         path: "news",
                         match: {
                             title: { $regex: ".*" + search + ".*", $options: "i" },
-                            category
+                            category,
+                            approved: approved == "true" && approved != "false"
                         },
                         options: {
                             sort,
@@ -226,7 +381,8 @@ newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
                         path: "news",
                         match: {
                             title: { $regex: ".*" + search + ".*", $options: "i" },
-                            category
+                            category,
+                            approved: approved == "true" && approved != "false"
                         },
                         options: {
                             limit,
@@ -245,7 +401,8 @@ newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
                     await user.populate({
                         path: "news",
                         match: {
-                            category
+                            category,
+                            approved: approved == "true" && approved != "false"
                         },
                         options: {
                             sort,
@@ -265,7 +422,8 @@ newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
                     await user.populate({
                         path: "news",
                         match: {
-                            title: { $regex: ".*" + search + ".*", $options: "i" }
+                            title: { $regex: ".*" + search + ".*", $options: "i" },
+                            approved: approved == "true" && approved != "false"
                         },
                         options: {
                             sort,
@@ -280,7 +438,8 @@ newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
                     await user.populate({
                         path: "news",
                         match: {
-                            category
+                            category,
+                            approved: approved == "true" && approved != "false"
                         },
                         options: {
                             limit,
@@ -294,7 +453,8 @@ newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
                     await user.populate({
                         path: "news",
                         match: {
-                            title: { $regex: ".*" + search + ".*", $options: "i" }
+                            title: { $regex: ".*" + search + ".*", $options: "i" },
+                            approved: approved == "true" && approved != "false"
                         },
                         options: {
                             limit,
@@ -311,6 +471,9 @@ newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
                     sortOption == "popular" ? sort.views = -1 : "";
                     await user.populate({
                         path: "news",
+                        match: {
+                            approved: approved == "true" && approved != "false"
+                        },
                         options: {
                             sort,
                             limit,
@@ -323,6 +486,9 @@ newsRouter.route("/my/:page/:limit/:category/:sortOption/:search")
                 else {
                     await user.populate({
                         path: "news",
+                        match: {
+                            approved: approved == "true" && approved != "false"
+                        },
                         options: {
                             limit,
                             skip
@@ -412,6 +578,21 @@ newsRouter.route("/:newsID")
             await newsCategory.save();
             res.send(news);
         } catch (error) {
+            next(error);
+        }
+    });
+
+newsRouter.route("/:newsID/toggleApproved")
+    .put(AdminUser, async (req, res, next) => {
+        const news = await News.findById(req.params.newsID);
+        if (news) {
+            news.approved = !news.approved;
+            await news.save();
+            await news.populate("author").populate("category").populate("comments.user").populate("comments.reacts").execPopulate();
+            res.send(news);
+        } else {
+            const error = new Error("News with id: " + req.params.newsID + " not found");
+            error.statusCode = 400;
             next(error);
         }
     });

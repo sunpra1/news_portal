@@ -12,7 +12,6 @@ summaryRouter.route("/")
         }
     });
 
-
 summaryRouter.route("/adminAndAuthorUsers")
     .get(async (req, res, next) => {
         try {

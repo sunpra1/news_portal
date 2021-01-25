@@ -25,6 +25,10 @@ const newsSchema = Mongoose.Schema({
         required: [true, "Author of the news is required"],
         ref: "User"
     },
+    approved: {
+        type: Boolean,
+        default: false
+    },
     images: [{
         type: imageSchema
     }],
