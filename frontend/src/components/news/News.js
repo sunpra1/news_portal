@@ -22,7 +22,7 @@ export default class News extends Component {
             search: "",
             sortOption: "",
             page: 1,
-            limit: 20,
+            limit: 10,
             categories: [],
             news: [],
             searchSuggestions: [],
