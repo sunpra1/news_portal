@@ -29,10 +29,12 @@ const userSchema = Mongoose.Schema({
             validator: value => Validator.trim(value.toString()).length == 10 && Validator.isNumeric(Validator.trim(value.toString())),
             message: prop => {
                 let message;
-                if (Validator.trim(data.phone.toString()).length != 10) {
+                if (Validator.trim(prop.value.toString()).length != 10) {
                     message = "Phone number must be 10 characters long";
-                } else if (!Validator.isNumeric(Validator.trim(data.phone.toString()))) {
+                } else if (!Validator.isNumeric(Validator.trim(prop.value.toString()))) {
                     message = "Phone number must be numeric";
+                } else { 
+                    message = "Phone number validation failed";
                 }
                 return message;
             }

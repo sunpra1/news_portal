@@ -4,6 +4,7 @@ import News from "../Model/News.js";
 import NewsReact from "../Model/NewsReact.js";
 import User from "../Model/User.js";
 import Validator from 'validator';
+import Message from "../Model/Message.js";
 
 const TakeUserSchemaFillable = (req, res, next) => {
     Object.keys(req.body).forEach(key => {
@@ -54,4 +55,12 @@ const TakeNewsReactSchemaFillable = (req, res, next) => {
     next();
 };
 
-export { TakeUserSchemaFillable, TakeNewsSchemaFillable, TakeCommentSchemaFillable, TakeCommentReactSchemaFillable, TakeNewsReactSchemaFillable };
+const TakeMessageSchemaFillable = (req, res, next) => {
+    Object.keys(req.body).forEach(key => {
+        if (!Message.fillable.includes(key))
+            delete req.body[key];
+    });
+    next();
+};
+
+export { TakeUserSchemaFillable, TakeNewsSchemaFillable, TakeCommentSchemaFillable, TakeCommentReactSchemaFillable, TakeNewsReactSchemaFillable, TakeMessageSchemaFillable };

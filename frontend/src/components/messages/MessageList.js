@@ -7,7 +7,7 @@ import { simplifiedError } from '../utils/SimplifiedError';
 import Dialog from '../layout/Dialog';
 import { toast } from 'react-toastify';
 
-export default class SliderImagesList extends Component {
+export default class MessageList extends Component {
     constructor(props) {
         super(props);
 
@@ -28,20 +28,20 @@ export default class SliderImagesList extends Component {
         }
     };
 
-    toggleSliderImageVisibility = (image, position) => {
+    toggleMessageReplyStatus = (message, position) => {
         this.setState({ isRequestComplete: false });
         const token = localStorage.getItem("token");
         if (token) {
             Axios({
                 method: 'put',
-                url: `${BaseURL}sliderImages/${image._id}/toggleVisibility`,
+                url: `${BaseURL}messages/${message._id}/toggleReplied`,
                 headers: {
                     authorization: token
                 }
             }).then(result => {
                 this.setState({ isRequestComplete: true });
-                this.props.toggleSliderImageVisibility(position);
-                toast.success(`Slider image has been made ${result.data.visibility ? "visible" : "invisible"}`);
+                this.props.toggleMessageReplyStatus(position);
+                toast.success(`Message replied status has been made ${result.data.replied ? "replied" : "pending"}`);
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
@@ -51,31 +51,31 @@ export default class SliderImagesList extends Component {
                         errors.error = error.response.data.message;
                     }
                 } else {
-                    errors.error = "Unable to change the image visibility";
+                    errors.error = "Unable to change message replied status";
                 }
                 this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
         }
     };
 
-    deleteSliderImage = (image, position) => {
-        const deleteDialog = <Dialog headerText="Are you sure?" bodyText="Please confirm to delete the slider image." positiveButton={{ text: "OK", handler: () => this.deleteHandler(image, position) }} negativeButton={{ text: "Cancel" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
+    deleteMessage = (message, position) => {
+        const deleteDialog = <Dialog headerText="Are you sure?" bodyText="Please confirm to delete the message." positiveButton={{ text: "OK", handler: () => this.deleteHandler(message, position) }} negativeButton={{ text: "Cancel" }} clearDialog={() => this.setState({ dialog: null })} icon={<FontAwesomeIcon icon={faExclamationTriangle} />} />;
         this.setState({ dialog: deleteDialog });
     };
 
-    deleteHandler = (image, position) => {
+    deleteHandler = (message, position) => {
         const token = localStorage.getItem("token");
         if (token) {
             Axios({
                 method: 'delete',
-                url: `${BaseURL}sliderImages/${image._id}`,
+                url: `${BaseURL}messages/${message._id}`,
                 headers: {
                     authorization: token
                 }
             }).then(result => {
                 this.setState({ isRequestComplete: true });
-                this.props.deleteSliderImage(position);
-                toast.success("Slider image has been deleted successfully");
+                this.props.deleteMessage(position);
+                toast.success("Message has been deleted successfully");
             }).catch(error => {
                 let { errors } = this.state;
                 if (error.response && error.response.data.message) {
@@ -85,7 +85,7 @@ export default class SliderImagesList extends Component {
                         errors.error = error.response.data.message;
                     }
                 } else {
-                    errors.error = "Unable to delete slider image";
+                    errors.error = "Unable to delete message";
                 }
                 this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
@@ -93,7 +93,7 @@ export default class SliderImagesList extends Component {
     };
 
     render() {
-        const { sliderImages } = this.props;
+        const { messages } = this.props;
         const { dialog } = this.state;
         return (
             <>
@@ -105,24 +105,30 @@ export default class SliderImagesList extends Component {
                         <thead className="bg-info text-light">
                             <tr>
                                 <th>S.N.</th>
-                                <th>IMAGE</th>
-                                <th>STATUS</th>
+                                <th>PERSON NAME</th>
+                                <th>EMAIL</th>
+                                <th>SUBJECT</th>
+                                <th>MESSAGE</th>
+                                <th>REPLIED STATUS</th>
                                 <th>ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>
                             {
-                                sliderImages && sliderImages.length > 0 ?
+                                messages && messages.length > 0 ?
                                     (
-                                        sliderImages.map((image, index) => {
+                                        messages.map((message, index) => {
                                             return (
                                                 <tr>
                                                     <td>{index + 1}</td>
-                                                    <td><img style={{ height: "150px", width: "200px" }} src={`data:${image.image.mimetype};base64,${image.image.buffer}`} alt={`Slider ${index}`} /></td>
-                                                    <td><p className={`text-center ${image.visibility ? "text-success" : "text-danger"}`}>{image.visibility ? "VISIBLE" : "NOT VISIBLE"}</p></td>
+                                                    <td>{message.name}</td>
+                                                    <td>{message.email}</td>
+                                                    <td>{message.subject}</td>
+                                                    <td>{message.message}</td>
+                                                    <td className={`${message.replied ? "text-success" : "text-danger"}`} >{message.replied ? "REPLIED" : "PENDING"}</td>
                                                     <td>
-                                                        <button onClick={() => this.toggleSliderImageVisibility(image, index)} className={`btn ${image.visibility ? "btn-danger" : "btn-success"} rounded-0 btn-sm m-1`}><FontAwesomeIcon icon={image.visibility ? faTimes : faCheck} /> </button>
-                                                        <button onClick={() => this.deleteSliderImage(image, index)} className="btn btn-danger btn-sm rounded-0 m-1"><FontAwesomeIcon icon={faTrashAlt} /> </button>
+                                                        <button onClick={() => this.toggleMessageReplyStatus(message, index)} className={`btn ${message.replied ? "btn-danger" : "btn-success"} rounded-0 btn-sm m-1`}><FontAwesomeIcon icon={message.replied ? faTimes : faCheck} /> </button>
+                                                        <button onClick={() => this.deleteMessage(message, index)} className="btn btn-danger btn-sm rounded-0 m-1"><FontAwesomeIcon icon={faTrashAlt} /> </button>
                                                     </td>
                                                 </tr>
                                             );
@@ -131,8 +137,8 @@ export default class SliderImagesList extends Component {
                                     :
                                     (
                                         <tr>
-                                            <td colSpan="4" className="text-center text-danger">
-                                                NO SLIDER IMAGES
+                                            <td colSpan="7" className="text-center text-danger">
+                                                NO MESSAGES YET
                                             </td>
                                         </tr>
                                     )

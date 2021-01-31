@@ -25,6 +25,10 @@ export default class Sidebar extends Component {
                     {
                         user && user.role === "ADMIN" && <li className="list-group-item border-0 box-shadow mb-3"><Link className="text-light d-block" to="/sliderImages" id="viewAllNewsSection">SLIDER IMAGES</Link></li>
                     }
+                    {
+                        user && user.role === "ADMIN" && <li className="list-group-item border-0 box-shadow mb-3"><Link className="text-light d-block" to="/messages" id="viewAllNewsSection">MESSAGES</Link></li>
+                    }
+
                     <li className="list-group-item border-0 box-shadow"><Link className="text-light d-block" to="/user/profile" id="viewProfileSection">PROFILE</Link></li>
                 </ul>
             </div>

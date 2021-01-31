@@ -469,12 +469,12 @@ const addNewSliderImageData = data => {
         error.image = "Image for the slider is required";
     }
 
-    if (data.visibility && !Validator.isBoolean(data.visibility)) { 
+    if (data.visibility && !Validator.isBoolean(data.visibility)) {
         error.visibility = "Image visibility must be a boolean value";
     }
 
     return error;
-}
+};
 
 const deleteSliderImageData = data => {
     const error = {};
@@ -482,7 +482,7 @@ const deleteSliderImageData = data => {
         error.imageSliderID = "Provide valid id for route parameter imageSliderID";
     }
     return error;
-}
+};
 
 const toggleSliderImageVisibilityData = data => {
     const error = {};
@@ -490,6 +490,62 @@ const toggleSliderImageVisibilityData = data => {
         error.imageSliderID = "Provide valid id for route parameter imageSliderID";
     }
     return error;
-}
+};
 
-export { addUserData, uniqueUserData, updateUserRoleData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getNewsParams, getBackendNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, increaseNewsViewData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, addNewSliderImageData, deleteSliderImageData, toggleSliderImageVisibilityData };
+const postNewMessageData = data => {
+    let error = {};
+
+    if (data.name) {
+        if (Validator.trim(data.name).length == 0) {
+            error.name = "Name of the persion who is sending the message is left empty";
+        }
+    } else {
+        error.name = "Name of the persion who is sending the message is required";
+    }
+
+    if (data.email) {
+        if (Validator.trim(data.email).length == 0) {
+            error.email = "Email of the persion who is sending the message is left empty";
+        } else if (!Validator.isEmail(Validator.trim(data.email))) {
+            error.email = "Please provide valid email address";
+        }
+    } else {
+        error.email = "Email of the persion who is sending the message is required";
+    }
+
+    if (data.subject) {
+        if (Validator.trim(data.subject).length == 0) {
+            error.subject = "Subject for which message is being sent is left empty";
+        }
+    } else {
+        error.subject = "Subject for which message is being sent is required";
+    }
+
+    if (data.message) {
+        if (Validator.trim(data.message).length == 0) {
+            error.message = "Description for which message is being sent is left empty";
+        }
+    } else {
+        error.message = "Description for which message is being sent is required";
+    }
+
+    return error;
+};
+
+const deleteMessageData = data => {
+    const error = {};
+    if (!Validator.isMongoId(data.messageID)) {
+        error.messageID = "Provide valid id for route parameter messageID";
+    }
+    return error;
+};
+
+const toggleMessageRepliedData = data => {
+    const error = {};
+    if (!Validator.isMongoId(data.messageID)) {
+        error.messageID = "Provide valid id for route parameter messageID";
+    }
+    return error;
+};
+
+export { addUserData, uniqueUserData, updateUserRoleData, loginData, updateUserData, addCategoryData, getCategoryData, deleteCategoryData, updateCategoryData, addNewsData, getNewsParams, getBackendNewsParams, updateNewsData, deleteNewsData, addCommentData, updateCommentData, deleteCommentData, increaseNewsViewData, toggleCommentApproveData, postCommentReactData, postNewsReactData, getPopularNewsData, getSearchSuggestionsData, addNewSliderImageData, deleteSliderImageData, toggleSliderImageVisibilityData, postNewMessageData, deleteMessageData, toggleMessageRepliedData };

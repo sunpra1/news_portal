@@ -26,6 +26,7 @@ import Profile from './components/profile/Profile';
 import EditProfile from './components/profile/EditProfile';
 import ImageSlider from './components/imageSlider/ImageSlider';
 import AddSliderImage from './components/imageSlider/AddSliderImage';
+import Messages from './components/messages/Messages';
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
           <AdminRoute exact path="/users/add" component={AddUser} />
           <AdminRoute exact path="/sliderImages" component={ImageSlider} />
           <AdminRoute exact path="/sliderImages/add" component={AddSliderImage} />
+          <AdminRoute exact path="/messages" component={Messages} />
         </Switch>
       </Router>
     </UserProvider>

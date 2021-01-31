@@ -109,7 +109,9 @@ export default class News extends Component {
         Axios({
             method: 'get',
             url: `${BaseURL}news${viewMyNewsOnly ? "/my" : ""}/search_suggestions/${search}/6`,
-            authorization: token
+            headers: {
+                authorization: token
+            }
         }).then(result => {
             const searchSuggestions = result.data;
             this.setState({ searchSuggestions });
@@ -251,7 +253,6 @@ export default class News extends Component {
                                     <h4 className="text-danger"><FontAwesomeIcon icon={faNewspaper} /> News</h4>
                                     <p className="mt-3 text-secondary font-italic"><FontAwesomeIcon icon={faTachometerAlt} /> Dashboard / <FontAwesomeIcon icon={faNewspaper} /> News</p>
                                 </div>
-
                                 {
                                     isRequestComplete ? (
 
