@@ -71,7 +71,7 @@ export default class Messages extends Component {
     };
 
     render() {
-        const { messages, errors, dialog, isRequestComplete } = this.state;
+        const { messages, dialog, isRequestComplete } = this.state;
         return (
             <>
                 {

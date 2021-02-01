@@ -129,7 +129,7 @@ export default class Comments extends Component {
                             return (
                                 <div className="row box-shadow py-3 mb-4" key={comment._id}>
                                     <div className="col-sm-2 col-md-1 p-1 d-flex justify-content-md-end justify-content-sm-center" >
-                                        <img src={comment.user.image ? comment.user.image : User} style={{ width: "8vh", height: "8vh" }} className="img-thumbnail img-fluid rounded-circle" alt={comment.user.fullName} />
+                                        <img src={comment.user && comment.user.image ? `data:${comment.user.image.mimetype};base64,${comment.user.image.buffer}` : User} style={{ width: "8vh", height: "8vh" }} className="img-thumbnail img-fluid rounded-circle" alt={comment.user.fullName} />
                                     </div>
                                     <div className="col-sm-8 col-md-10">
                                         <span className="text-secondary mr-3" style={{ fontSize: "12px" }}>{comment.user.fullName}</span>
