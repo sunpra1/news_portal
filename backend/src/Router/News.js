@@ -282,10 +282,8 @@ newsRouter.route("/backend/:page/:limit/:approved/:category/:sortOption/:search"
                     sortOption == "popular" ? sort.views = -1 : "";
 
                     data = await News.find({
-                        title: { $regex: ".*" + search + ".*", $options: "i" }, match: {
-                            title: { $regex: ".*" + search + ".*", $options: "i" },
-                            approved: approved == "true" && approved != "false"
-                        },
+                        title: { $regex: ".*" + search + ".*", $options: "i" },
+                        approved: approved == "true" && approved != "false"
                     }).sort(sort).limit(limit).skip(skip);
                 }
 

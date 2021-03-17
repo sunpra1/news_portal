@@ -157,7 +157,7 @@ export default class Register extends Component {
             fullName: this.state.fullName,
             phone: this.state.phone,
             password: this.state.password,
-            role: "AUTHOR",
+            role: "USER",
             confirm_password: this.state.confirm_password
         };
 

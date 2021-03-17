@@ -141,14 +141,4 @@ describe("Testing routes on category router", () => {
         expect(newCategoryRes.statusCode).toBe(401);
         expect(newCategoryRes.body.message).not.toBe(undefined);
     });
-
-    test("Should probihit to delete category with one or more news", async () => {
-        const categoryThree = { category: "Category Three" };
-        const newCategoryRes = await Request.post("/categories")
-            .set("authorization", adminToken)
-            .send(categoryThree);
-        expect(newCategoryRes.statusCode).toBe(400);
-        expect(newCategoryRes.body.message).not.toBe(undefined);
-    });
-
 });

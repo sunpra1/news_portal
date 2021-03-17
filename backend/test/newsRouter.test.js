@@ -19,13 +19,13 @@ describe("Testing routes on news router", () => {
         const userRegisterRes = await Request.post("/users/register").send(newUser);
         adminToken = userRegisterRes.body.token;
 
-        const newCategory = { category: "Category Two" };
+        const newCategory = { category: "Category four" };
         const newCategoryRes = await Request.post("/categories")
             .set("authorization", adminToken)
             .send(newCategory);
         categoryId = newCategoryRes.body._id;
 
-        const anotherNewCategory = { category: "Category Three" };
+        const anotherNewCategory = { category: "Category five" };
         const anotherNewCategoryRes = await Request.post("/categories")
             .set("authorization", adminToken)
             .send(anotherNewCategory);
@@ -70,7 +70,7 @@ describe("Testing routes on news router", () => {
         const search = "two";
         const filter = "new";
 
-        const getNewsResponse = await Request.get("/news/" + page + "/" + limit + "/" + category + "/" + filter + "/" + search);
+        const getNewsResponse = await Request.get("/news/backend/" + page + "/" + limit + "/false/" + category + "/" + filter + "/" + search).set("authorization", adminToken);
         expect(getNewsResponse.statusCode).toBe(200);
         expect(getNewsResponse.body.length == 1).toBe(true);
         expect(getNewsResponse.body[getNewsResponse.body.length - 1].title.toLowerCase().indexOf(search) > -1).toBe(true);
@@ -83,7 +83,7 @@ describe("Testing routes on news router", () => {
         const search = "one";
         const filter = "null";
 
-        const getNewsResponse = await Request.get("/news/" + page + "/" + limit + "/" + category + "/" + filter + "/" + search);
+        const getNewsResponse = await Request.get("/news/backend/" + page + "/" + limit + "/false/" + category + "/" + filter + "/" + search).set("authorization", adminToken);
         expect(getNewsResponse.statusCode).toBe(200);
         expect(getNewsResponse.body.length > 0).toBe(true);
         expect(getNewsResponse.body[getNewsResponse.body.length - 1].category._id).toBe(categoryId);
@@ -97,7 +97,7 @@ describe("Testing routes on news router", () => {
         const search = "null";
         const filter = "new";
 
-        const getNewsResponse = await Request.get("/news/" + page + "/" + limit + "/" + category + "/" + filter + "/" + search);
+        const getNewsResponse = await Request.get("/news/backend/" + page + "/" + limit + "/false/" + category + "/" + filter + "/" + search).set("authorization", adminToken);
         expect(getNewsResponse.statusCode).toBe(200);
         expect(getNewsResponse.body.length > 0).toBe(true);
         expect(getNewsResponse.body[getNewsResponse.body.length - 1].category._id).toBe(categoryId);
@@ -113,7 +113,7 @@ describe("Testing routes on news router", () => {
         const search = "title";
         const filter = "new";
 
-        const getNewsResponse = await Request.get("/news/" + page + "/" + limit + "/" + category + "/" + filter + "/" + search);
+        const getNewsResponse = await Request.get("/news/backend/" + page + "/" + limit + "/false/" + category + "/" + filter + "/" + search).set("authorization", adminToken);
         expect(getNewsResponse.statusCode).toBe(200);
         expect(getNewsResponse.body.length > 0).toBe(true);
         expect(getNewsResponse.body[getNewsResponse.body.length - 1].title.toLowerCase().indexOf(search) > -1).toBe(true);
@@ -127,7 +127,7 @@ describe("Testing routes on news router", () => {
         const search = null;
         const filter = null;
 
-        const getNewsResponse = await Request.get("/news/" + page + "/" + limit + "/" + category + "/" + filter + "/" + search);
+        const getNewsResponse = await Request.get("/news/backend/" + page + "/" + limit + "/false/" + category + "/" + filter + "/" + search).set("authorization", adminToken);
         expect(getNewsResponse.statusCode).toBe(200);
         expect(getNewsResponse.body.length > 0).toBe(true);
         expect(getNewsResponse.body[getNewsResponse.body.length - 1].category._id).toBe(categoryId);
@@ -140,7 +140,7 @@ describe("Testing routes on news router", () => {
         const search = "title";
         const filter = null;
 
-        const getNewsResponse = await Request.get("/news/" + page + "/" + limit + "/" + category + "/" + filter + "/" + search);
+        const getNewsResponse = await Request.get("/news/backend/" + page + "/" + limit + "/false/" + category + "/" + filter + "/" + search).set("authorization", adminToken);
         expect(getNewsResponse.statusCode).toBe(200);
         expect(getNewsResponse.body.length > 0).toBe(true);
         expect(getNewsResponse.body[getNewsResponse.body.length - 1].title.toLowerCase().indexOf(search) > -1).toBe(true);
@@ -153,7 +153,7 @@ describe("Testing routes on news router", () => {
         const search = "null";
         const filter = "old";
 
-        const getNewsResponse = await Request.get("/news/" + page + "/" + limit + "/" + category + "/" + filter + "/" + search);
+        const getNewsResponse = await Request.get("/news/backend/" + page + "/" + limit + "/false/" + category + "/" + filter + "/" + search).set("authorization", adminToken);
         expect(getNewsResponse.statusCode).toBe(200);
         expect(getNewsResponse.body.length > 0).toBe(true);
         expect(new Date(getNewsResponse.body[getNewsResponse.body.length - 1].createdAt) > new Date(getNewsResponse.body[getNewsResponse.body.length - 2].createdAt)).toBe(true);
@@ -166,7 +166,7 @@ describe("Testing routes on news router", () => {
         const search = null;
         const filter = null;
 
-        const getNewsResponse = await Request.get("/news/" + page + "/" + limit + "/" + category + "/" + filter + "/" + search);
+        const getNewsResponse = await Request.get("/news/backend/" + page + "/" + limit + "/false/" + category + "/" + filter + "/" + search).set("authorization", adminToken);
         expect(getNewsResponse.statusCode).toBe(200);
         expect(getNewsResponse.body.length > 0).toBe(true);
     });

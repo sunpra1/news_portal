@@ -45,7 +45,7 @@ export default class NewsList extends Component {
                     authorization: token
                 }
             }).then(result => {
-                this.setState({ isRequestComplete: false });
+                this.setState({ isRequestComplete: true });
                 this.props.deleteNews(position);
                 toast.success("News deleted successfully");
             }).catch(error => {
@@ -92,8 +92,8 @@ export default class NewsList extends Component {
                 }
                 this.setState({ errors, isRequestComplete: true }, () => this.setUpErrorDialog());
             });
-        }  
-    }
+        }
+    };
 
     render() {
         const { news } = this.props;
@@ -124,7 +124,7 @@ export default class NewsList extends Component {
                                     news.map((news, position) => {
                                         return (
                                             <tr key={news._id}>
-                                                <td><Link className={`${news.approved ? "text-primary" : "text-danger" }`} to={{
+                                                <td><Link className={`${news.approved ? "text-primary" : "text-danger"}`} to={{
                                                     pathname: `/news/view/${news._id}`,
                                                     news
                                                 }}>{news.title}</Link></td>
@@ -136,7 +136,7 @@ export default class NewsList extends Component {
                                                         pathname: `/news/update/${news._id}`,
                                                         news
                                                     }} className="btn btn-sm rounded-0 btn-info m-1"><FontAwesomeIcon icon={faPenAlt} /></Link>
-                                                    <button onClick={() => this.toggleApprovedStatusHandler(news, position)} className={`btn btn-sm rounded-0 ${news.approved ? "btn-danger" : "btn-success" } m-1`}><FontAwesomeIcon icon={news.approved ? faTimes : faCheck} /></button>
+                                                    <button onClick={() => this.toggleApprovedStatusHandler(news, position)} className={`btn btn-sm rounded-0 ${news.approved ? "btn-danger" : "btn-success"} m-1`}><FontAwesomeIcon icon={news.approved ? faTimes : faCheck} /></button>
                                                     <button onClick={() => this.onDeleteNewsClicked(news, position)} className="btn btn-sm rounded-0 btn-danger m-1"><FontAwesomeIcon icon={faTrash} /></button>
                                                 </td>
                                             </tr>
